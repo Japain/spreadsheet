@@ -69,7 +69,7 @@ The tool maintains a persistent **project configuration** that separates stable 
 | Setting | Description |
 |---|---|
 | Target Workbook list | Display name and source filename (e.g., `Report_A_v1.xlsx`) per workbook |
-| Target Folder path | Folder where both the source (`_v1`) and output (`_v2`) files reside, per workbook |
+| Target Folder path | Folder where both the source and exported output files reside, per workbook |
 | Tab Mappings | For each Target Workbook: one or more (Input Tab name → Target Tab name) pairs |
 
 **Rules:**
@@ -83,7 +83,7 @@ The tool maintains a persistent **project configuration** that separates stable 
 | Setting | Description |
 |---|---|
 | **Input File Location** | File path to the Master Workbook for this run |
-| **Output Suffix** | User-typed string appended to each exported filename (e.g., `_v1_Test`, `_v1_052226`) |
+| **Output Suffix** | User-typed string appended to each exported filename, without a leading underscore (e.g., `v1_Test`, `v1_052226`) — the tool inserts the `_` separator automatically |
 | **Run checkboxes** | Per-workbook toggle — whether this workbook is included in the current run |
 
 **Rules:**
@@ -118,9 +118,10 @@ When writing to a Target Tab:
 ### 4.4 Export & Naming
 
 - The tool **does not overwrite** the source target file (`_v1`); it creates a new output file
-- Output filename format: `{original_filename_without_suffix}_{output_suffix}.xlsx`
-  - Example: Source = `Report_A_v1.xlsx`, Suffix = `v1_052226` → Output = `Report_A_v1_052226.xlsx`
-  - The original `_v1` portion of the name is part of the base filename and is preserved; the user-entered suffix is appended
+- Output filename format: `{source_filename_without_extension}_{output_suffix}.xlsx`
+  - The source filename (minus `.xlsx`) is used as the base; the tool appends `_` and the user-entered suffix
+  - Example: Source = `Report_A_v1.xlsx`, Suffix entered = `052226` → Output = `Report_A_v1_052226.xlsx`
+  - The user types the suffix **without** a leading underscore; the tool adds it
 - Output files are saved to the **same folder** as their corresponding source target file
 - Output format is always `.xlsx`
 
@@ -134,7 +135,7 @@ When writing to a Target Tab:
 |---|---|
 | Master Workbook file not found | Halt entire run before starting; show error |
 | Target Workbook file not found | Skip that workbook; log error; continue with remaining workbooks |
-| Mapped Input Tab not found in Master | Skip that workbook; log error; continue |
+| Mapped Input Tab not found in Master | Skip that mapping; log error; continue with other mappings in that workbook |
 | Mapped Target Tab not found in Target Workbook | Skip that tab mapping; log error; continue with other mappings in that workbook |
 | Output folder does not exist or is not writable | Skip that workbook; log error; continue |
 | Target file is open in Excel (file lock) | Skip that workbook; log a clear error ("file is open — please close it and re-run") |
@@ -238,4 +239,5 @@ A table with one row per configured Target Workbook and the following columns:
 
 | Version | Date | Author | Notes |
 |---|---|---|---|
-| 0.1 | 2026-05-24 | Jarred Payne | Initial draft for Jenny review |
+| 0.1 | 2026-05-24 | Jarred Payne, Jenny Guo | Initial draft for team review |
+| 0.2 | 2026-05-24 | Jarred Payne | Resolve PR review comments: clarify naming format (tool adds `_` separator, user types suffix without leading underscore), align error-handling for missing input/target tabs, fix `_v2` wording in Fixed Config |
