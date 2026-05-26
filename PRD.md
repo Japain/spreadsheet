@@ -1,7 +1,7 @@
 # Product Requirements Document
 ## Excel Workbook Update & Export Tool
-**Version:** 0.1 — Draft for Review
-**Date:** 2026-05-24
+**Version:** 0.7 — Draft for Review
+**Date:** 2026-05-25
 **Author:** Jarred Payne, Jenny Guo
 **Status:** 🟡 In Review
 
@@ -71,24 +71,26 @@ The tool maintains a persistent **project configuration** that separates stable 
 | Target Workbook list | Display name and source filename (e.g., `Report_A_v1.xlsx`) per workbook |
 | Target Folder path | Folder where both the source and exported output files reside, per workbook |
 | Tab Mappings | For each Target Workbook: one or more (Input Tab name → Target Tab name) pairs |
+| Input File Folder Path | Folder where the Master Workbook resides — used as the default browse location when picking an input file each run |
 
 **Rules:**
 - Tab mappings are configured once and reused across all runs
 - Each Target Workbook can have 1–2 tab mappings
 - There are 2–8 Target Workbooks per configuration
 - The tool must provide a UI to add, edit, and remove workbooks and their mappings
+- Fixed Config is persisted as a human-readable **JSON file** stored locally alongside the application; it may be hand-edited outside the UI if needed
 
 #### 4.1.2 Run Parameters (re-entered at the start of each run)
 
 | Setting | Description |
 |---|---|
-| **Input File Location** | File path to the Master Workbook for this run |
+| **Input File Name** | Filename of the Master Workbook for this run (e.g. `Master_Q1_2026.xlsx`) — combined with the fixed Input File Folder Path to resolve the full file path |
 | **Output Suffix** | User-typed string appended to each exported filename, without a leading underscore (e.g., `v1_Test`, `v1_052226`) — the tool inserts the `_` separator automatically |
 | **Run checkboxes** | Per-workbook toggle — whether this workbook is included in the current run |
 
 **Rules:**
 - Run Parameters are not saved between sessions
-- The Input File Location should support a file browser picker in addition to manual path entry
+- The Input File Name field should support a file browser picker in addition to manual entry; the picker opens pre-navigated to the configured Input File Folder Path but allows browsing elsewhere on the filesystem
 - The Output Suffix field must accept any alphanumeric string including underscores and hyphens; no file-system-illegal characters
 
 ---
@@ -110,8 +112,7 @@ When writing to a Target Tab:
 2. **Paste values only** — write cell values as static data; do not paste formulas from the master sheet
 3. **Paste starting at A1** — all Target Tabs receive data beginning at cell A1 (including the header row)
 4. **Preserve everything outside the Paste Zone** — columns to the right of the pasted data table, rows below the data table (if any), other sheets in the same workbook, and all cell formatting within the target tab must remain untouched
-
-> ⚠️ **Open Question for Team:** How is the "width" of the Paste Zone determined — by the column count of the incoming master data, or is there a fixed column boundary per tab mapping? This affects how precisely we can clear only the paste area without touching adjacent formula columns.
+5. **Paste Zone width is dynamic** — the width of the cleared and written region is determined by the column count of the incoming master data, not a fixed boundary; adjacent formula columns are never touched
 
 ---
 
@@ -124,8 +125,7 @@ When writing to a Target Tab:
   - The user types the suffix **without** a leading underscore; the tool adds it
 - Output files are saved to the **same folder** as their corresponding source target file
 - Output format is always `.xlsx`
-
-> ⚠️ **Open Question for Team:** Should the tool warn or prompt if an output file with the same name already exists in the target folder, or silently overwrite it?
+- **Pre-run conflict check** — before starting a run, the tool checks whether any output file for a selected workbook already exists in its target folder. If one or more conflicts are found, the tool displays a warning listing the conflicting filenames and prompts the user to confirm or cancel before any processing begins; cancelling allows the user to change the suffix and re-run
 
 ---
 
@@ -159,7 +159,7 @@ All errors are surfaced in the UI at the end of the run in a results/log panel �
 The application has a single main screen with three logical sections:
 
 **Section A — Run Parameters (top bar)**
-- Input File Location: text field + file browser button
+- Input File Name: text field + file browser button (opens pre-navigated to the fixed Input File Folder Path)
 - Output Suffix: text field
 - "Run" action button
 
@@ -185,8 +185,8 @@ A table with one row per configured Target Workbook and the following columns:
 - Changes to Fixed Config are saved immediately to a local config file
 
 ### 5.3 Platform
-- Windows desktop application
-- Initial delivery may be a **local web app** (runs in browser, served locally) or a **Python desktop GUI** — to be decided during technical planning
+- Windows desktop application built with **PySide6** (native Python GUI)
+- Packaged as a self-contained Windows executable (PyInstaller) — no Python installation required on the end-user machine
 - Must not require admin privileges to install or run
 
 ---
@@ -219,10 +219,10 @@ A table with one row per configured Target Workbook and the following columns:
 
 | # | Question | Owner | Status |
 |---|---|---|---|
-| 1 | How is the Paste Zone width determined — dynamic (matches master column count) or fixed per mapping? | — | 🔴 Unresolved |
-| 2 | Should the tool warn before overwriting an existing output file with the same name? | — | 🔴 Unresolved |
-| 3 | Delivery format preference: local web app (React/Python backend) vs. native Python GUI (Tkinter/PyQt)? | — | 🔴 Unresolved |
-| 4 | Should the Fixed Config be stored as a human-readable file (JSON/YAML) that can be hand-edited, or opaque? | — | 🔴 Unresolved |
+| 1 | How is the Paste Zone width determined — dynamic (matches master column count) or fixed per mapping? | — | 🟢 Resolved: dynamic, matches master column count |
+| 2 | Should the tool warn before overwriting an existing output file with the same name? | — | 🟢 Resolved: pre-run warning listing conflicts; user must confirm or cancel before processing begins |
+| 3 | Delivery format preference: local web app (React/Python backend) vs. native Python GUI (Tkinter/PyQt)? | — | 🟢 Resolved: native Python GUI using PySide6, packaged with PyInstaller |
+| 4 | Should the Fixed Config be stored as a human-readable file (JSON/YAML) that can be hand-edited, or opaque? | — | 🟢 Resolved: human-readable JSON file, stored locally alongside the application |
 
 ---
 
@@ -241,3 +241,8 @@ A table with one row per configured Target Workbook and the following columns:
 |---|---|---|---|
 | 0.1 | 2026-05-24 | Jarred Payne, Jenny Guo | Initial draft for team review |
 | 0.2 | 2026-05-24 | Jarred Payne | Resolve PR review comments: clarify naming format (tool adds `_` separator, user types suffix without leading underscore), align error-handling for missing input/target tabs, fix `_v2` wording in Fixed Config |
+| 0.3 | 2026-05-25 | Jarred Payne | Move Input File Folder Path to Fixed Config; change Run Parameter from full file path to filename only; file browser opens pre-navigated to fixed folder |
+| 0.4 | 2026-05-25 | Jarred Payne | Resolve Q1: Paste Zone width is dynamic, determined by master column count |
+| 0.5 | 2026-05-25 | Jarred Payne | Resolve Q2: pre-run conflict check warns on existing output filenames; user must confirm or cancel |
+| 0.6 | 2026-05-25 | Jarred Payne | Resolve Q3: native Python GUI using PySide6, packaged as self-contained Windows executable via PyInstaller |
+| 0.7 | 2026-05-25 | Jarred Payne | Resolve Q4: Fixed Config stored as human-readable JSON file alongside the application |
