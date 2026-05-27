@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Excel Workbook Update &amp; Export Tool · Design</title>
+<meta name="viewport" content="width=1480"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap"/>
+<template id="__bundler_thumbnail" data-bg-color="#f0eee9">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="1200" height="800" fill="#f0eee9"/>
+    <g transform="translate(360, 240)">
+      <rect x="0" y="0" width="480" height="320" rx="20" fill="#1f7a3b"/>
+      <g stroke="#ffffff" stroke-width="14" stroke-linecap="round">
+        <path d="M150 110 L330 290"/>
+        <path d="M330 110 L150 290"/>
+      </g>
+    </g>
+    <text x="600" y="640" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="38" font-weight="600" fill="#2a251f">Excel Update &amp; Export Tool</text>
+  </svg>
+</template>
+<style>
+  html, body { margin: 0; padding: 0; background: #f0eee9; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; color: #2a251f; }
+  #root { width: 100%; min-height: 100vh; }
+
+  /* Designer's note bar — context block at the top of the canvas */
+  .note {
+    background: #fff; border-radius: 12px; padding: 20px 24px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.04);
+    font-size: 13px; line-height: 1.55; color: #3a342d;
+    max-width: 760px;
+  }
+  .note h2 { font-size: 15px; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .note p { margin: 0; color: #5a544c; }
+  .note .row { display: flex; gap: 18px; margin-top: 12px; font-size: 12px; }
+  .note .row > div { flex: 1; }
+  .note .row b { color: #2a251f; display: block; margin-bottom: 3px; font-weight: 600; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="data.jsx"></script>
+<script type="text/babel" src="v1-styles.jsx"></script>
+<script type="text/babel" src="v1-app.jsx"></script>
+<script type="text/babel" src="v2-styles.jsx"></script>
+<script type="text/babel" src="v2-app.jsx"></script>
+
+<script type="text/babel" data-presets="env,react">
+  // Inject style sheets for V1 and V2 globally so the canvas-hosted apps render correctly.
+  function injectStyles() {
+    if (!document.getElementById('v1-injected-styles')) {
+      const s = document.createElement('style');
+      s.id = 'v1-injected-styles';
+      s.textContent = V1_STYLES;
+      document.head.appendChild(s);
+    }
+    if (!document.getElementById('v2-injected-styles')) {
+      const s = document.createElement('style');
+      s.id = 'v2-injected-styles';
+      s.textContent = V2_STYLES;
+      document.head.appendChild(s);
+    }
+  }
+  injectStyles();
+
+  function DesignerNote() {
+    return (
+      <div className="note" data-screen-label="00 Designer note">
+        <h2>Excel Workbook Update &amp; Export Tool · two directions</h2>
+        <p>Working from your PRD v0.7 — a PySide6 Windows app for quarter-end Excel processing. Two interpretations below, both fully interactive: navigate <b>Run ↔ Configure</b>, and click <b>Run</b> to step through the conflict warning, progress, and results log.</p>
+        <div className="row">
+          <div><b>Quarterly (V1)</b> — Polished Fluent / Windows 11 system look. Mica-tinted, light, accessible. Familiar shape for a finance analyst who lives in Windows.</div>
+          <div><b>QX (V2)</b> — Bolder, denser, designer-y dark take. Monospace-led, command-center layout. Same flows, sharper visual identity.</div>
+        </div>
+        <div className="row">
+          <div><b>Data scenario</b> Realistic Q1 2026 FP&amp;A workbooks (Revenue, OpEx, Headcount, P&amp;L, Cash Flow, Regional). 6 target workbooks, master is <code style={{fontFamily:'ui-monospace, monospace', background:'#f0eee9', padding:'1px 5px', borderRadius:3}}>Master_Q1_2026.xlsx</code>.</div>
+          <div><b>States covered</b> Main (configured), Configure view, edit single mapping, first-time empty, conflict dialog, in-progress, mixed-results log, run history.</div>
+        </div>
+      </div>
+    );
+  }
+
+  function Canvas() {
+    return (
+      <DesignCanvas>
+        <DCSection id="note" title="Brief" subtitle="Read this first">
+          <DCArtboard id="note" label="Designer's note" width={760} height={260} background="transparent">
+            <DesignerNote/>
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="polished" title="V1 · Quarterly" subtitle="Polished Windows 11 Fluent — light, familiar, accessible">
+          <DCArtboard id="v1-main" label="A · Main · configured" width={1280} height={820}>
+            <V1App/>
+          </DCArtboard>
+          <DCArtboard id="v1-empty" label="B · First-time empty state" width={1280} height={820}>
+            <V1App initialEmpty/>
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="bolder" title="V2 · QX" subtitle="Bolder dark take — monospace-led command center">
+          <DCArtboard id="v2-main" label="A · Main · configured" width={1280} height={820}>
+            <V2App/>
+          </DCArtboard>
+          <DCArtboard id="v2-empty" label="B · First-time empty state" width={1280} height={820}>
+            <V2App initialEmpty/>
+          </DCArtboard>
+        </DCSection>
+      </DesignCanvas>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<Canvas/>);
+</script>
+</body>
+</html>
