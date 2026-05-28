@@ -246,7 +246,7 @@ function V2Settings({ workbooks, setWorkbooks, inputFolder, setInputFolder }) {
         <div>
           <div className="v2-field-label">Config file</div>
           <div className="v2-input-wrap">
-            <input className="v2-input" value="~/.quarterly/config.json" readOnly/>
+            <input className="v2-input" value="%USERPROFILE%\.quarterly\config.json" readOnly/>
             <button className="v2-browse-btn" title="Open in editor"><IcCopy size={14}/></button>
           </div>
         </div>

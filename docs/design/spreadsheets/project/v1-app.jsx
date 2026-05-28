@@ -52,7 +52,7 @@ function V1Sidebar({ view, setView }) {
       <div className="v1-side-spacer" />
       <div className="v1-side-footer">
         <div>Project: <strong style={{color:'#2a2d35'}}>FP&amp;A Quarterly</strong></div>
-        <div>Config: ~/.quarterly/config.json</div>
+        <div>Config: %USERPROFILE%\.quarterly\config.json</div>
         <div>v1.2.0 · Build 4421</div>
       </div>
     </aside>
