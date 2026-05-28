@@ -194,7 +194,7 @@ class WorkbookProcessor(QThread):
    d. For each tab mapping:
       - Find input sheet in master. If missing → log warning, mark partial, continue.
       - Find target sheet. If missing → log warning, mark partial, continue.
-      - Clear paste zone: iterate from A1 to last used row × last used col, set values to None.
+      - Clear paste zone: iterate from A1 to last used row × master `max_column`, set values to None.
       - Write values only (no formulas) from master sheet starting at A1.
    e. Save to `{target_folder}/{base}_{suffix}.xlsx`. If folder unwritable → log error, continue.
    f. Emit `workbook_finished` with RunResult.

@@ -1,5 +1,7 @@
 // V2 "QX" — Bolder app component.
 
+const { useState, useMemo } = React;
+
 function V2Chrome({ children }) {
   return (
     <div className="v2-root">
@@ -23,7 +25,7 @@ function V2Chrome({ children }) {
 
 function V2Check({ on, onClick }) {
   return (
-    <div className={'v2-check ' + (on ? 'on' : '')} onClick={onClick}>
+    <div className={'v2-check ' + (on ? 'on' : '')} onClick={onClick} role="checkbox" aria-checked={on}>
       {on && <IcCheck size={12}/>}
     </div>
   );
