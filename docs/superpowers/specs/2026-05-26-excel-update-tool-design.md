@@ -19,7 +19,7 @@ A Windows desktop app (PySide6) that lets an analyst load a master Excel workboo
 | GUI framework | PySide6 | PRD requirement; native Windows feel |
 | Excel I/O | openpyxl | Pure Python, no Excel install needed, packages cleanly with PyInstaller |
 | Packaging | PyInstaller (onedir) | Self-contained Windows executable, no Python required on target machine |
-| Config storage | JSON at `~/.quarterly/config.json` | Human-readable, hand-editable, PRD requirement |
+| Config storage | JSON at `~/.quarterly/config.json` | Human-readable, hand-editable; implementation decision (PRD specifies local JSON config but not path) |
 | Run log storage | Newline-delimited JSON at `~/.quarterly/runs.log` | Simple, appendable, easy to read in History view |
 | UI theme | V1 "Quarterly" (Windows 11 Fluent-inspired light) | Approved direction; dark mode deferred |
 
@@ -82,10 +82,10 @@ Config file path: `~/.quarterly/config.json`. Created with defaults on first run
 class RunResult:
     workbook_id: str
     filename: str
-    status: Literal["success", "partial", "error"]
+    status: Literal["success", "skipped", "error"]
     # success: all mappings written, output file created
-    # partial: ≥1 mapping skipped (missing tab), but output file was still created
-    # error:   workbook skipped entirely (file not found / locked / unwritable folder)
+    # skipped: workbook skipped entirely; reserved for PRD-defined "Skipped" state
+    # error:   workbook skipped entirely (file not found / missing tab / locked / unwritable folder)
     message: str
     output_filename: str | None   # None when status == "error"
     rows_written: int
@@ -192,8 +192,8 @@ class WorkbookProcessor(QThread):
    b. Attempt to open target file. If not found → log error, emit `workbook_finished` with status=error, continue.
    c. Detect file lock by attempting exclusive open before writing. If locked → log "file is open — close it and re-run", continue.
    d. For each tab mapping:
-      - Find input sheet in master. If missing → log warning, mark partial, continue.
-      - Find target sheet. If missing → log warning, mark partial, continue.
+      - Find input sheet in master. If missing → log error, emit `workbook_finished` with status=error, skip workbook.
+      - Find target sheet. If missing → log error, emit `workbook_finished` with status=error, skip workbook.
       - Clear paste zone: iterate from A1 to last used row × master `max_column`, set values to None.
       - Write values only (no formulas) from master sheet starting at A1.
    e. Save to `{target_folder}/{base}_{suffix}.xlsx`. If folder unwritable → log error, continue.
@@ -229,8 +229,8 @@ Called synchronously in the UI thread on Run click. If the list is non-empty, sh
 |---|---|
 | Master file not found | Halt run, surface error in UI before any processing |
 | Target file not found | Skip workbook, log error, continue |
-| Input tab missing in master | Skip mapping, log warning, workbook output still created if other mappings succeed |
-| Target tab missing | Skip mapping, log warning, same as above |
+| Input tab missing in master | Skip workbook, log error, continue |
+| Target tab missing | Skip workbook, log error, continue |
 | Output folder not writable | Skip workbook, log error, continue |
 | Target file open in Excel | Skip workbook, log "file is open — close it and re-run" |
 
