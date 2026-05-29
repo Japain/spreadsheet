@@ -83,7 +83,7 @@ function buildResults(workbooks, suffix) {
         return {
           id: wb.id,
           filename: wb.filename,
-          status: 'partial',
+          status: 'skipped',
           message: 'Mapped tab "Region_EU" not found in target — skipped that mapping.',
           output: outName,
           durationMs: 3120,

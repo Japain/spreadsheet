@@ -154,7 +154,7 @@ function V2ProgressDialog({ workbooks, progress }) {
 
 function V2LogPanel({ results, suffix, onCopy, onDismiss }) {
   const ok = results.filter(r => r.status === 'success').length;
-  const partial = results.filter(r => r.status === 'partial').length;
+  const skipped = results.filter(r => r.status === 'skipped').length;
   const err = results.filter(r => r.status === 'error').length;
   return (
     <div className="v2-log">
@@ -165,7 +165,7 @@ function V2LogPanel({ results, suffix, onCopy, onDismiss }) {
           <span style={{fontSize:12, color:'var(--text-3)'}}>· suffix <span className="v2-mono" style={{color:'var(--text-2)'}}>_{suffix}</span></span>
         </div>
         <span className="v2-pill ok">{ok} ok</span>
-        {partial > 0 && <span className="v2-pill warn">{partial} partial</span>}
+        {skipped > 0 && <span className="v2-pill warn">{skipped} skipped</span>}
         {err > 0 && <span className="v2-pill err">{err} error</span>}
         <button className="v2-btn v2-btn-ghost v2-btn-sm" onClick={onCopy}><IcCopy size={13}/> Copy</button>
         <button className="v2-btn v2-btn-ghost v2-btn-sm" onClick={onDismiss}><IcX size={13}/></button>
@@ -174,7 +174,7 @@ function V2LogPanel({ results, suffix, onCopy, onDismiss }) {
         <div key={r.id} className="v2-log-row">
           <div>
             {r.status === 'success' && <span style={{color:'var(--success)'}}><IcCheck size={14}/></span>}
-            {r.status === 'partial' && <span style={{color:'var(--warn)'}}><IcWarn size={14}/></span>}
+            {r.status === 'skipped' && <span style={{color:'var(--warn)'}}><IcWarn size={14}/></span>}
             {r.status === 'error' && <span style={{color:'var(--error)'}}><IcX size={14}/></span>}
           </div>
           <div className="v2-log-ts">{r.durationMs ? (r.durationMs/1000).toFixed(2) + 's' : '—'}</div>
@@ -458,7 +458,7 @@ function V2App({ initialEmpty = false }) {
                   </div>
                   <div style={{display:'flex', gap:6}}>
                     <span className="v2-pill ok">{r.ok} ok</span>
-                    {r.warn > 0 && <span className="v2-pill warn">{r.warn} partial</span>}
+                    {r.warn > 0 && <span className="v2-pill warn">{r.warn} skipped</span>}
                     {r.err > 0 && <span className="v2-pill err">{r.err} err</span>}
                   </div>
                 </div>
