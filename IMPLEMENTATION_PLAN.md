@@ -20,7 +20,7 @@ Every phase follows this TDD loop: **write failing tests → implement to pass �
 
 - [ ] Create `src/`, `src/ui/`, `build/`, and `tests/`, `tests/ui/` directories
 - [ ] Create `requirements.txt` with `PySide6`, `openpyxl`, `pyinstaller`, `pytest`, `pytest-qt`
-- [ ] Add `pytest.ini` (or `[tool.pytest]` in `pyproject.toml`) pointing testpaths at `tests/`
+- [ ] Add `pytest.ini` (or `[tool.pytest.ini_options]` in `pyproject.toml`) pointing testpaths at `tests/`
 - [ ] Confirm Python version target (3.11+) and note in README
 - [ ] Verify `pytest` collects zero tests (clean baseline)
 
@@ -80,13 +80,15 @@ Every phase follows this TDD loop: **write failing tests → implement to pass �
   - [ ] Iterate selected workbooks in order:
     - [ ] Emit `workbook_started`
     - [ ] Open target file; on missing → `RunResult(status="error")`, continue
-    - [ ] Detect file lock (exclusive open attempt); on locked → log message, continue
+    - [ ] **Test:** locked file emits `workbook_finished` with `RunResult(status="error")` and processor continues to next workbook
+    - [ ] Detect file lock (exclusive open attempt); on locked → emit `workbook_finished` with `RunResult(status="error")`, continue
     - [ ] For each `TabMapping`:
       - [ ] Look up input sheet in master; on missing → log, mark skipped, continue
       - [ ] Look up target sheet; on missing → log, mark skipped, continue
       - [ ] Clear paste zone: A1 → last used row × master `max_column`, set values to `None`
       - [ ] Write values only (`cell.value = master_cell.value`) from A1
-    - [ ] Save output as `{base}_{suffix}.xlsx` in target folder; on unwritable → log, continue
+    - [ ] **Test:** unwritable output folder emits `workbook_finished` with `RunResult(status="error")` and processor continues to next workbook
+    - [ ] Save output as `{base}_{suffix}.xlsx` in target folder; on unwritable → emit `workbook_finished` with `RunResult(status="error")`, continue
     - [ ] Emit `workbook_finished` with `RunResult`
   - [ ] Emit `run_complete` with all results
   - [ ] Append `RunRecord` to `runs.log`
@@ -130,11 +132,13 @@ Every phase follows this TDD loop: **write failing tests → implement to pass �
 ### RunBar
 - [ ] **Test:** Run button disabled when input file field is empty
 - [ ] **Test:** Run button disabled when suffix field is empty
+- [ ] **Test:** Run button disabled when suffix contains filesystem-illegal characters (`\/:*?"<>|`)
 - [ ] **Test:** Run button disabled when no workbook rows are checked
-- [ ] **Test:** Run button enabled when all three conditions are met
+- [ ] **Test:** Run button enabled when all three conditions are met (valid non-empty suffix, input file set, ≥1 checked row)
 - [ ] Input file text field + browse button (opens to `config.input_folder`)
 - [ ] Output suffix text field with `_` prefix label and `.xlsx` suffix label
-- [ ] Run button (disabled until input file, suffix, and ≥1 checked workbook are set)
+- [ ] Suffix validation: reject characters illegal on Windows filesystems (`\/:*?"<>|`); show inline error
+- [ ] Run button (disabled until input file, valid suffix, and ≥1 checked workbook are set)
 - [ ] Run button enable/disable logic wired to field changes and checkbox state
 
 ### WorkbookTable
@@ -167,6 +171,8 @@ Every phase follows this TDD loop: **write failing tests → implement to pass �
 
 - [ ] **Test:** editing filename field auto-saves to config JSON
 - [ ] **Test:** "Add mapping" button disabled when 2 mappings exist
+- [ ] **Test:** "Remove mapping" button disabled (or hidden) when only 1 mapping exists, preventing zero-mapping workbooks
+- [ ] **Test:** newly added workbook starts with 1 default mapping and cannot be saved with 0 mappings
 - [ ] **Test:** "Remove workbook" removes workbook from config and list
 - [ ] **Test:** adding a new workbook shows it in the list and selects it
 - [ ] Global settings card: default input folder field + browse button; auto-saves on change
@@ -175,7 +181,7 @@ Every phase follows this TDD loop: **write failing tests → implement to pass �
   - [ ] Right pane: detail form for selected workbook
     - [ ] Filename field
     - [ ] Target folder field + browse button
-    - [ ] Tab mapping rows (up to 2): input field → arrow → target field + remove button each
+    - [ ] Tab mapping rows (1–2): input field → arrow → target field + remove button each; remove button disabled/hidden when only 1 mapping remains
     - [ ] "Add mapping" button (disabled when 2 mappings exist)
     - [ ] "Remove workbook" danger button at bottom
 - [ ] All edits auto-save to `config.json` immediately on change
