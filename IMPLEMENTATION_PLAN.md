@@ -16,40 +16,40 @@ Every phase follows this TDD loop: **write failing tests → implement to pass �
 
 ---
 
-## Phase 1 — Project Scaffolding
+## Phase 1 — Project Scaffolding ✓
 
-- [ ] Create `src/`, `src/ui/`, `build/`, and `tests/`, `tests/ui/` directories
-- [ ] Create `requirements.txt` with `PySide6`, `openpyxl`, `pyinstaller`, `pytest`, `pytest-qt`
-- [ ] Add `pytest.ini` (or `[tool.pytest.ini_options]` in `pyproject.toml`) pointing testpaths at `tests/`
-- [ ] Confirm Python version target (3.11+) and note in README
-- [ ] Verify `pytest` collects zero tests (clean baseline)
+- [x] Create `src/`, `src/ui/`, `build/`, and `tests/`, `tests/ui/` directories
+- [x] Create `requirements.txt` with `PySide6`, `openpyxl`, `pyinstaller`, `pytest`, `pytest-qt`
+- [x] Add `pytest.ini` (or `[tool.pytest.ini_options]` in `pyproject.toml`) pointing testpaths at `tests/`
+- [x] Confirm Python version target (3.11+) and note in README
+- [x] Verify `pytest` collects zero tests (clean baseline)
 
 ---
 
-## Phase 2 — Data Models (`src/config.py`, `src/log.py`)
+## Phase 2 — Data Models (`src/config.py`, `src/log.py`) ✓
 
 **Test file:** `tests/test_config.py`, `tests/test_log.py`
 
 ### `src/config.py`
-- [ ] **Test:** round-trip `Config.save` → `Config.load` returns equal object
-- [ ] **Test:** `Config.load` on missing file creates default config and writes it to disk
-- [ ] **Test:** malformed JSON raises a clear error (not a raw `JSONDecodeError`)
-- [ ] `TabMapping` dataclass (`input: str`, `target: str`)
-- [ ] `Workbook` dataclass (`id`, `filename`, `folder`, `mappings: list[TabMapping]`)
-- [ ] `Config` dataclass (`input_folder`, `workbooks: list[Workbook]`)
-- [ ] `Config.load(path)` — deserialize from JSON; create default file if absent
-- [ ] `Config.save(path)` — serialize to JSON
-- [ ] Config path resolution: `%USERPROFILE%\.quarterly\config.json`
-- [ ] Default config creation on first run (empty workbooks list, empty input_folder)
+- [x] **Test:** round-trip `Config.save` → `Config.load` returns equal object
+- [x] **Test:** `Config.load` on missing file creates default config and writes it to disk
+- [x] **Test:** malformed JSON raises a clear error (not a raw `JSONDecodeError`)
+- [x] `TabMapping` dataclass (`input: str`, `target: str`)
+- [x] `Workbook` dataclass (`id`, `filename`, `folder`, `mappings: list[TabMapping]`)
+- [x] `Config` dataclass (`input_folder`, `workbooks: list[Workbook]`)
+- [x] `Config.load(path)` — deserialize from JSON; create default file if absent
+- [x] `Config.save(path)` — serialize to JSON
+- [x] Config path resolution: `%USERPROFILE%\.quarterly\config.json`
+- [x] Default config creation on first run (empty workbooks list, empty input_folder)
 
 ### `src/log.py`
-- [ ] **Test:** `append_record` writes valid newline-delimited JSON; second call appends (not overwrites)
-- [ ] **Test:** `read_records` returns records most-recent-first
-- [ ] **Test:** `read_records` on missing file returns empty list (no crash)
-- [ ] `RunResult` dataclass (`workbook_id`, `filename`, `status`, `message`, `output_filename`, `rows_written`, `duration_ms`)
-- [ ] `RunRecord` dataclass (`timestamp`, `input_filename`, `suffix`, `results: list[RunResult]`)
-- [ ] `append_record(path, record)` — append newline-delimited JSON to `runs.log`
-- [ ] `read_records(path)` — read all records from `runs.log`, return most-recent-first
+- [x] **Test:** `append_record` writes valid newline-delimited JSON; second call appends (not overwrites)
+- [x] **Test:** `read_records` returns records most-recent-first
+- [x] **Test:** `read_records` on missing file returns empty list (no crash)
+- [x] `RunResult` dataclass (`workbook_id`, `filename`, `status`, `message`, `output_filename`, `rows_written`, `duration_ms`)
+- [x] `RunRecord` dataclass (`timestamp`, `input_filename`, `suffix`, `results: list[RunResult]`)
+- [x] `append_record(path, record)` — append newline-delimited JSON to `runs.log`
+- [x] `read_records(path)` — read all records from `runs.log`, return most-recent-first
 
 ---
 
