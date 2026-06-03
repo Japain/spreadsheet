@@ -49,3 +49,10 @@ def test_config_load_missing_workbook_key_raises_clear_error(tmp_path):
     path.write_text('{"input_folder": "", "workbooks": [{"id": "x"}]}')
     with pytest.raises(ValueError, match="config"):
         Config.load(path)
+
+
+def test_config_load_non_dict_json_raises_value_error(tmp_path):
+    path = tmp_path / "config.json"
+    path.write_text("[]")
+    with pytest.raises(ValueError, match="config"):
+        Config.load(path)

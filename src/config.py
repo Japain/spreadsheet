@@ -39,6 +39,8 @@ class Config:
             data = json.loads(path.read_text(encoding="utf-8"))
         except json.JSONDecodeError as e:
             raise ValueError(f"Invalid config file: {e}") from e
+        if not isinstance(data, dict):
+            raise ValueError("Invalid config file: expected a JSON object")
         try:
             workbooks = [
                 Workbook(
