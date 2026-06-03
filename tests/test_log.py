@@ -1,6 +1,5 @@
 import json
 import pytest
-from pathlib import Path
 from src.log import RunResult, RunRecord, append_record, read_records
 
 
@@ -74,5 +73,31 @@ def test_run_result_rejects_invalid_status():
             message="",
             output_filename=None,
             rows_written=0,
+            duration_ms=0,
+        )
+
+
+def test_run_result_error_status_rejects_non_none_output_filename():
+    with pytest.raises(ValueError, match="output_filename"):
+        RunResult(
+            workbook_id="wb1",
+            filename="Report.xlsx",
+            status="error",
+            message="failed",
+            output_filename="Report_Q1.xlsx",
+            rows_written=0,
+            duration_ms=0,
+        )
+
+
+def test_run_result_error_status_rejects_nonzero_rows_written():
+    with pytest.raises(ValueError, match="rows_written"):
+        RunResult(
+            workbook_id="wb1",
+            filename="Report.xlsx",
+            status="error",
+            message="failed",
+            output_filename=None,
+            rows_written=5,
             duration_ms=0,
         )

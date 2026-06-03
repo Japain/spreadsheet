@@ -19,6 +19,11 @@ class RunResult:
     def __post_init__(self):
         if self.status not in ("success", "skipped", "error"):
             raise ValueError(f"Invalid status: {self.status!r}")
+        if self.status == "error":
+            if self.output_filename is not None:
+                raise ValueError("output_filename must be None when status is 'error'")
+            if self.rows_written != 0:
+                raise ValueError("rows_written must be 0 when status is 'error'")
 
 
 @dataclass

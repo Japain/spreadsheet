@@ -3,9 +3,10 @@ import os
 from dataclasses import dataclass, asdict
 from pathlib import Path
 
-# Live config/log paths; Path.home() fallback keeps Linux/CI working without USERPROFILE set
-DEFAULT_CONFIG_PATH = Path(os.environ.get("USERPROFILE", Path.home())) / ".quarterly" / "config.json"
-DEFAULT_LOG_PATH = Path(os.environ.get("USERPROFILE", Path.home())) / ".quarterly" / "runs.log"
+# Live config/log paths; USERPROFILE used on Windows, Path.home() fallback for Linux/CI
+_home = Path(os.environ.get("USERPROFILE") or Path.home())
+DEFAULT_CONFIG_PATH = _home / ".quarterly" / "config.json"
+DEFAULT_LOG_PATH = _home / ".quarterly" / "runs.log"
 
 
 @dataclass
