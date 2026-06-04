@@ -5,9 +5,15 @@ import pytest
 import openpyxl
 from pathlib import Path
 
+import src.processor as _proc_module
 from src.config import Config, Workbook, TabMapping
 from src.log import RunResult
 from src.processor import check_conflicts, WorkbookProcessor
+
+
+@pytest.fixture(autouse=True)
+def _redirect_log(tmp_path, monkeypatch):
+    monkeypatch.setattr(_proc_module, "DEFAULT_LOG_PATH", tmp_path / "test_runs.log")
 
 
 # ── helpers ──────────────────────────────────────────────────────────────────
@@ -301,6 +307,7 @@ def test_columns_right_of_max_column_untouched(tmp_path, qapp):
     assert ws.cell(1, 4).value == "keep_d"
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="chmod-based lock simulation not reliable on Windows")
 def test_locked_file_emits_error_and_continues(tmp_path, qapp):
     master_dir = tmp_path / "master"
     master_dir.mkdir()
@@ -332,6 +339,7 @@ def test_locked_file_emits_error_and_continues(tmp_path, qapp):
     assert statuses["ok"] == "success"
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="chmod-based permission simulation not reliable on Windows")
 def test_unwritable_output_folder_emits_error_and_continues(tmp_path, qapp):
     master_dir = tmp_path / "master"
     master_dir.mkdir()

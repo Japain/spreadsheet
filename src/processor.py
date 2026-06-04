@@ -120,69 +120,74 @@ class WorkbookProcessor(QThread):
                     results.append(r)
                     continue
 
+                target_wb = None
                 try:
-                    target_wb = openpyxl.load_workbook(target_path)
-                except Exception as exc:
-                    r = _error(f"Could not open target file: {exc}")
-                    self.workbook_finished.emit(r)
-                    results.append(r)
-                    continue
-
-                # d. Apply each tab mapping
-                any_skipped = False
-                rows_written = 0
-
-                for mapping in wb_cfg.mappings:
-                    if mapping.input not in master_wb.sheetnames:
-                        any_skipped = True
-                        continue
-                    if mapping.target not in target_wb.sheetnames:
-                        any_skipped = True
+                    try:
+                        target_wb = openpyxl.load_workbook(target_path)
+                    except Exception as exc:
+                        r = _error(f"Could not open target file: {exc}")
+                        self.workbook_finished.emit(r)
+                        results.append(r)
                         continue
 
-                    master_ws = master_wb[mapping.input]
-                    target_ws = target_wb[mapping.target]
+                    # d. Apply each tab mapping
+                    any_skipped = False
+                    rows_written = 0
 
-                    # Read master dimensions before iterating (read-only streams)
-                    master_max_col = master_ws.max_column or 0
-                    master_max_row = master_ws.max_row or 0
-                    target_max_row = target_ws.max_row or 0
+                    for mapping in wb_cfg.mappings:
+                        if mapping.input not in master_wb.sheetnames:
+                            any_skipped = True
+                            continue
+                        if mapping.target not in target_wb.sheetnames:
+                            any_skipped = True
+                            continue
 
-                    # Clear paste zone: A1 → target.max_row × master.max_column
-                    for row in range(1, target_max_row + 1):
-                        for col in range(1, master_max_col + 1):
-                            target_ws.cell(row=row, column=col).value = None
+                        master_ws = master_wb[mapping.input]
+                        target_ws = target_wb[mapping.target]
 
-                    # Write values only (data_only=True already strips formulas)
-                    for r_i, row_vals in enumerate(
-                        master_ws.iter_rows(values_only=True), start=1
-                    ):
-                        for c_i, value in enumerate(row_vals, start=1):
-                            target_ws.cell(row=r_i, column=c_i).value = value
+                        # Read master dimensions before iterating (read-only streams)
+                        master_max_col = master_ws.max_column or 0
+                        master_max_row = master_ws.max_row or 0
+                        target_max_row = target_ws.max_row or 0
 
-                    rows_written += master_max_row
+                        # Clear paste zone: A1 → target.max_row × master.max_column
+                        for row in range(1, target_max_row + 1):
+                            for col in range(1, master_max_col + 1):
+                                target_ws.cell(row=row, column=col).value = None
 
-                # e. Save output file
-                try:
-                    target_wb.save(output_path)
-                except (PermissionError, OSError) as exc:
-                    r = _error(f"Could not save output: {exc}")
+                        # Write values only (data_only=True already strips formulas)
+                        for r_i, row_vals in enumerate(
+                            master_ws.iter_rows(values_only=True), start=1
+                        ):
+                            for c_i, value in enumerate(row_vals, start=1):
+                                target_ws.cell(row=r_i, column=c_i).value = value
+
+                        rows_written += master_max_row
+
+                    # e. Save output file
+                    try:
+                        target_wb.save(output_path)
+                    except (PermissionError, OSError) as exc:
+                        r = _error(f"Could not save output: {exc}")
+                        self.workbook_finished.emit(r)
+                        results.append(r)
+                        continue
+
+                    status = "skipped" if any_skipped else "success"
+                    r = RunResult(
+                        workbook_id=wb_id,
+                        filename=wb_cfg.filename,
+                        status=status,
+                        message="",
+                        output_filename=output_path.name,
+                        rows_written=rows_written,
+                        duration_ms=int((time.monotonic() - t0) * 1000),
+                    )
                     self.workbook_finished.emit(r)
                     results.append(r)
-                    continue
-
-                status = "skipped" if any_skipped else "success"
-                r = RunResult(
-                    workbook_id=wb_id,
-                    filename=wb_cfg.filename,
-                    status=status,
-                    message="",
-                    output_filename=output_path.name,
-                    rows_written=rows_written,
-                    duration_ms=int((time.monotonic() - t0) * 1000),
-                )
-                self.workbook_finished.emit(r)
-                results.append(r)
+                finally:
+                    if target_wb is not None:
+                        target_wb.close()
 
         finally:
             master_wb.close()
