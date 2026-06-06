@@ -61,4 +61,12 @@ QLabel#pill_error {
     border-radius: 10px;
     padding: 2px 8px;
 }
+
+QLabel#tab_chip {
+    background-color: #ebebeb;
+    color: #1b1d22;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 11px;
+}
 """

@@ -117,8 +117,9 @@ Every phase follows this TDD loop: **write failing tests → implement to pass �
 
 **Test file:** `tests/ui/test_widgets.py` — uses `qtbot`.
 
-- [x] **Test:** `StatusPill("success")` has success bg color in stylesheet
-- [x] **Test:** `StatusPill("error")` has error bg color in stylesheet
+- [x] **Test:** `StatusPill("success")` sets `objectName` to `"pill_success"`
+- [x] **Test:** `StatusPill("error")` sets `objectName` to `"pill_error"`
+- [x] **Test:** `StatusPill("unknown")` raises `ValueError` before constructing any QWidget
 - [x] `StatusPill(QLabel)` — takes `status: Literal["success", "skipped", "error"]`, applies correct pill colors
 - [x] `TabChip(QLabel)` — small rounded chip for displaying tab names
 - [x] `HeaderCheckBox(QCheckBox)` — "toggle all" checkbox for WorkbookTable header

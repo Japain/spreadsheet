@@ -1,5 +1,5 @@
-from src.ui.widgets import StatusPill, TabChip, HeaderCheckBox
 import pytest
+from src.ui.widgets import StatusPill, TabChip, HeaderCheckBox
 
 
 def test_status_pill_success_object_name(qtbot):
@@ -20,7 +20,7 @@ def test_status_pill_skipped_object_name(qtbot):
     assert pill.objectName() == "pill_skipped"
 
 
-def test_status_pill_invalid_status_raises_value_error(qtbot):
+def test_status_pill_invalid_status_raises_value_error():
     with pytest.raises(ValueError, match="Invalid status"):
         StatusPill("unknown")
 
