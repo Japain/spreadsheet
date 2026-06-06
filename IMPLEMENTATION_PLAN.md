@@ -96,32 +96,33 @@ Every phase follows this TDD loop: **write failing tests → implement to pass �
 
 ---
 
-## Phase 4 — Styling (`src/ui/styles.py`)
+## Phase 4 — Styling (`src/ui/styles.py`) ✓
 
 **Test:** `tests/ui/test_styles.py` — `STYLESHEET` is a non-empty string and contains key tokens (`#4b6bdf`, `#f4f5f9`); smoke test only.
 
-- [ ] Define `STYLESHEET` as a QSS string covering:
-  - [ ] Window background `#f4f5f9`
-  - [ ] Card surface `#ffffff`, border `1px solid #ebebeb`
-  - [ ] Sidebar background `#f5f6fa`
-  - [ ] Accent / primary button `#4b6bdf`, white text
-  - [ ] Body text `#1b1d22`, secondary text `#6b7080`
-  - [ ] Monospace font family: `"Cascadia Mono", Consolas`
-  - [ ] Success pill: bg `#dff2e4`, text `#2a7a48`
-  - [ ] Warning pill: bg `#fdf3d0`, text `#7a5c00`
-  - [ ] Error pill: bg `#fde8e4`, text `#8c2a1c`
+- [x] Define `STYLESHEET` as a QSS string covering:
+  - [x] Window background `#f4f5f9`
+  - [x] Card surface `#ffffff`, border `1px solid #ebebeb`
+  - [x] Sidebar background `#f5f6fa`
+  - [x] Accent / primary button `#4b6bdf`, white text
+  - [x] Body text `#1b1d22`, secondary text `#6b7080`
+  - [x] Monospace font family: `"Cascadia Mono", Consolas`
+  - [x] Success pill: bg `#dff2e4`, text `#2a7a48`
+  - [x] Warning pill: bg `#fdf3d0`, text `#7a5c00`
+  - [x] Error pill: bg `#fde8e4`, text `#8c2a1c`
 
 ---
 
-## Phase 5 — Shared Widgets (`src/ui/widgets.py`)
+## Phase 5 — Shared Widgets (`src/ui/widgets.py`) ✓
 
 **Test file:** `tests/ui/test_widgets.py` — uses `qtbot`.
 
-- [ ] **Test:** `StatusPill("success")` has success bg color in stylesheet
-- [ ] **Test:** `StatusPill("error")` has error bg color in stylesheet
-- [ ] `StatusPill(QLabel)` — takes `status: Literal["success", "skipped", "error"]`, applies correct pill colors
-- [ ] `TabChip(QLabel)` — small rounded chip for displaying tab names
-- [ ] `HeaderCheckBox(QCheckBox)` — "toggle all" checkbox for WorkbookTable header
+- [x] **Test:** `StatusPill("success")` sets `objectName` to `"pill_success"`
+- [x] **Test:** `StatusPill("error")` sets `objectName` to `"pill_error"`
+- [x] **Test:** `StatusPill("unknown")` raises `ValueError` before constructing any QWidget
+- [x] `StatusPill(QLabel)` — takes `status: Literal["success", "skipped", "error"]`, applies correct pill colors
+- [x] `TabChip(QLabel)` — small rounded chip for displaying tab names
+- [x] `HeaderCheckBox(QCheckBox)` — "toggle all" checkbox for WorkbookTable header
 
 ---
 
