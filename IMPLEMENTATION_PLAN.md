@@ -227,26 +227,32 @@ Every phase follows this TDD loop: **write failing tests → implement to pass �
 
 **Test file:** `tests/ui/test_main_window.py` — integration smoke tests only.
 
-- [ ] **Test:** clicking "Configure" nav item switches to SettingsView
-- [ ] **Test:** clicking "Run History" nav item switches to HistoryView
+### Skeleton (completed before Phase 6) ✓
+
+- [x] **Test:** clicking "Configure" nav item switches to SettingsView
+- [x] **Test:** clicking "Run History" nav item switches to HistoryView
+- [x] `QApplication` setup with app name and style
+- [x] Apply `STYLESHEET` from `styles.py`
+- [x] `QMainWindow` fixed at 1280×820, non-resizable
+- [x] Sidebar (220px):
+  - [x] Brand mark / app name at top
+  - [x] Nav items: Run, Configure, Run History
+  - [x] Footer: config file path, version string
+- [x] `QStackedWidget` content area hosting `MainView`, `SettingsView`, `HistoryView`
+- [x] Sidebar nav items switch the stacked widget page
+- [x] Config loaded at startup; passed to all views
+
+### Wiring (after Phase 9)
+
 - [ ] **Test:** Run click with conflicts shows ConflictDialog before starting processor
 - [ ] **Test:** Run click with no conflicts starts `WorkbookProcessor` directly
-- [ ] `QApplication` setup with app name and style
-- [ ] Apply `STYLESHEET` from `styles.py`
-- [ ] `QMainWindow` fixed at 1280×820, non-resizable
-- [ ] Sidebar (220px):
-  - [ ] Brand mark / app name at top
-  - [ ] Nav items: Run, Configure, Run History
-  - [ ] Footer: config file path, version string
-- [ ] `QStackedWidget` content area hosting `MainView`, `SettingsView`, `HistoryView`
-- [ ] Sidebar nav items switch the stacked widget page
 - [ ] Wire `WorkbookProcessor` signals to `MainView` and `ProgressDialog`:
   - [ ] `workbook_started` → update ProgressDialog row to spinner
   - [ ] `workbook_finished` → update ProgressDialog row to done/error
   - [ ] `run_complete` → close ProgressDialog, show LogPanel
   - [ ] `run_error` → close ProgressDialog, show error in UI
 - [ ] On Run click: call `check_conflicts()`, show `ConflictDialog` if needed, then start `WorkbookProcessor`
-- [ ] Config loaded at startup; passed to all views
+- [ ] **Revisit config error UX** — skeleton shows `QMessageBox.critical` + exits on corrupt `config.json`; consider backup-and-reset strategy for better UX
 
 ---
 

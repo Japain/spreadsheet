@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QMainWindow,
+    QMessageBox,
     QPushButton,
     QSizePolicy,
     QStackedWidget,
@@ -32,7 +33,7 @@ class MainWindow(QMainWindow):
         self.setStyleSheet(STYLESHEET)
 
         self._main_view = MainView(config)
-        self._settings_view = SettingsView()
+        self._settings_view = SettingsView(config)
         self._history_view = HistoryView()
 
         self._stack = QStackedWidget()
@@ -40,7 +41,7 @@ class MainWindow(QMainWindow):
         self._stack.addWidget(self._settings_view)  # index 1
         self._stack.addWidget(self._history_view)   # index 2
 
-        sidebar = self._build_sidebar()
+        sidebar = self._setup_sidebar()
 
         central = QWidget()
         central.setObjectName("central")
@@ -52,7 +53,7 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(central)
 
-    def _build_sidebar(self) -> QWidget:
+    def _setup_sidebar(self) -> QWidget:
         sidebar = QWidget()
         sidebar.setObjectName("sidebar")
         sidebar.setFixedWidth(220)
@@ -83,27 +84,23 @@ class MainWindow(QMainWindow):
         self._nav_run = QPushButton("Run")
         self._nav_configure = QPushButton("Configure")
         self._nav_history = QPushButton("Run History")
+        self._nav_buttons = (self._nav_run, self._nav_configure, self._nav_history)
 
-        for btn in (self._nav_run, self._nav_configure, self._nav_history):
+        for btn in self._nav_buttons:
             btn.setObjectName("nav_item")
-            btn.setStyleSheet(
-                "QPushButton { text-align:left; padding:8px 12px;"
-                " border:none; border-radius:6px; color:#1b1d22; background:transparent; }"
-                " QPushButton:hover { background:#ebebeb; }"
-                " QPushButton[active=true] { background:#e8ecfc; color:#4b6bdf; font-weight:bold; }"
-            )
             btn.setCheckable(False)
 
         self._nav_run.clicked.connect(lambda: self._switch_page(0))
         self._nav_configure.clicked.connect(lambda: self._switch_page(1))
         self._nav_history.clicked.connect(lambda: self._switch_page(2))
 
-        config_lbl = QLabel(str(DEFAULT_CONFIG_PATH))
+        config_display = f".../{DEFAULT_CONFIG_PATH.parent.name}/{DEFAULT_CONFIG_PATH.name}"
+        config_lbl = QLabel(config_display)
         config_lbl.setObjectName("secondary")
-        config_lbl.setWordWrap(True)
+        config_lbl.setToolTip(str(DEFAULT_CONFIG_PATH))
         config_lbl.setStyleSheet("font-size:10px;")
 
-        version_lbl = QLabel("v1.0.0")
+        version_lbl = QLabel("v1.0.0")  # TODO: read from package metadata (Phase 11)
         version_lbl.setObjectName("secondary")
         version_lbl.setStyleSheet("font-size:10px;")
 
@@ -127,9 +124,7 @@ class MainWindow(QMainWindow):
         self._update_nav_active(index)
 
     def _update_nav_active(self, active_index: int) -> None:
-        for i, btn in enumerate(
-            [self._nav_run, self._nav_configure, self._nav_history]
-        ):
+        for i, btn in enumerate(self._nav_buttons):
             btn.setProperty("active", i == active_index)
             btn.style().unpolish(btn)
             btn.style().polish(btn)
@@ -138,7 +133,15 @@ class MainWindow(QMainWindow):
 def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("quarterly")
-    window = MainWindow()
+    try:
+        window = MainWindow()
+    except ValueError as e:
+        QMessageBox.critical(
+            None,
+            "Configuration Error",
+            f"Could not load configuration:\n\n{e}\n\nPlease fix or delete:\n{DEFAULT_CONFIG_PATH}",
+        )
+        sys.exit(1)
     window.show()
     sys.exit(app.exec())
 

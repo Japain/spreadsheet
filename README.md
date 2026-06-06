@@ -38,12 +38,11 @@ pytest
 | 3 | Processing logic (`processor.py`) | ✅ Done |
 | 4 | Styling (`styles.py`) | ✅ Done |
 | 5 | Shared widgets (`widgets.py`) | ✅ Done |
-| 10 (skeleton) | `MainWindow` shell — sidebar, nav, `QStackedWidget` | ✅ Done |
+| 10 | `MainWindow` — shell done; signal wiring after Phase 9 | 🔄 In Progress |
 | 6 | Main view — `WorkbookTable`, `RunBar`, `LogPanel` | 🔲 Pending |
 | 7 | Settings view | 🔲 Pending |
 | 8 | History view | 🔲 Pending |
 | 9 | Dialogs (`ConflictDialog`, `ProgressDialog`) | 🔲 Pending |
-| 10 (wiring) | Signal wiring — processor → dialogs → views | 🔲 Pending |
 | 11 | PyInstaller packaging | 🔲 Pending |
 
 ## Project Structure
