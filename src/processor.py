@@ -140,7 +140,7 @@ class WorkbookProcessor(QThread):
         try:
             with open(target_path, "r+b"):
                 pass
-        except PermissionError:
+        except OSError:
             return _error("File could not be accessed — it may be locked or you may not have write permission")
 
         target_wb = None
