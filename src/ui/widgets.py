@@ -4,19 +4,13 @@ from PySide6.QtWidgets import QLabel, QCheckBox
 
 
 class StatusPill(QLabel):
-    _STYLES: dict[str, tuple[str, str]] = {
-        "success": ("#dff2e4", "#2a7a48"),
-        "skipped": ("#fdf3d0", "#7a5c00"),
-        "error":   ("#fde8e4", "#8c2a1c"),
-    }
+    _VALID = frozenset({"success", "skipped", "error"})
 
     def __init__(self, status: Literal["success", "skipped", "error"], parent=None):
         super().__init__(status, parent)
-        bg, fg = self._STYLES[status]
-        self.setStyleSheet(
-            f"background-color: {bg}; color: {fg};"
-            " border-radius: 10px; padding: 2px 8px;"
-        )
+        if status not in self._VALID:
+            raise ValueError(f"Invalid status: {status!r}")
+        self.setObjectName(f"pill_{status}")
 
 
 class TabChip(QLabel):

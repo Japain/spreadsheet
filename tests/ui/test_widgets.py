@@ -1,23 +1,28 @@
-import pytest
 from src.ui.widgets import StatusPill, TabChip, HeaderCheckBox
+import pytest
 
 
-def test_status_pill_success_contains_success_bg(qtbot):
+def test_status_pill_success_object_name(qtbot):
     pill = StatusPill("success")
     qtbot.addWidget(pill)
-    assert "#dff2e4" in pill.styleSheet()
+    assert pill.objectName() == "pill_success"
 
 
-def test_status_pill_error_contains_error_bg(qtbot):
+def test_status_pill_error_object_name(qtbot):
     pill = StatusPill("error")
     qtbot.addWidget(pill)
-    assert "#fde8e4" in pill.styleSheet()
+    assert pill.objectName() == "pill_error"
 
 
-def test_status_pill_skipped_contains_warning_bg(qtbot):
+def test_status_pill_skipped_object_name(qtbot):
     pill = StatusPill("skipped")
     qtbot.addWidget(pill)
-    assert "#fdf3d0" in pill.styleSheet()
+    assert pill.objectName() == "pill_skipped"
+
+
+def test_status_pill_invalid_status_raises_value_error(qtbot):
+    with pytest.raises(ValueError, match="Invalid status"):
+        StatusPill("unknown")
 
 
 def test_tab_chip_is_creatable(qtbot):

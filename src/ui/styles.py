@@ -48,7 +48,7 @@ QLabel#pill_success {
     padding: 2px 8px;
 }
 
-QLabel#pill_warning {
+QLabel#pill_skipped {
     background-color: #fdf3d0;
     color: #7a5c00;
     border-radius: 10px;
