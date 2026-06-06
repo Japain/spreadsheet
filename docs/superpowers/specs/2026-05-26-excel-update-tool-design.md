@@ -135,6 +135,10 @@ Three vertical sections:
 **Empty state** (replaces RunBar + WorkbookTable when `config.workbooks` is empty)
 - Centred card with icon, heading, description, and "Add target workbook" button that navigates to SettingsView
 
+**Implementation decisions (Phase 6):**
+- Suffix validation error style: red border + `QLabel` error message below the suffix field (hidden when valid)
+- `WorkbookTable` rows: custom `QWidget` rows inside a `QScrollArea` (not `QTableWidget`) — full control over per-row opacity dimming and `TabChip` layout
+
 ### 5.3 SettingsView (`ui/settings_view.py`)
 
 **Global setting (top card):** Default input folder field + browse button.
