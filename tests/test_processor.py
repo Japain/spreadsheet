@@ -1,6 +1,8 @@
 """Processor tests — uses real .xlsx files via openpyxl; no file I/O mocking."""
 import os
+import re
 import sys
+import zipfile
 import pytest
 import openpyxl
 from pathlib import Path
@@ -369,3 +371,95 @@ def test_unwritable_output_folder_emits_error_and_continues(tmp_path, qapp):
     statuses = {r.workbook_id: r.status for r in cap.finished}
     assert statuses["locked"] == "error"
     assert statuses["ok"] == "success"
+
+
+# ── code-review additions ─────────────────────────────────────────────────────
+
+def _wb_with_wrong_dimensions(path: Path, sheets: dict) -> None:
+    """Create an xlsx whose dimension XML tag says only A1, forcing max_column/max_row to 1."""
+    _wb(path, sheets)
+    with zipfile.ZipFile(path, "r") as zin:
+        entries = {name: zin.read(name) for name in zin.namelist()}
+    for key in list(entries):
+        if re.match(r"xl/worksheets/sheet\d+\.xml", key):
+            xml = entries[key].decode("utf-8")
+            xml = re.sub(r"<dimension[^/]*/>", '<dimension ref="A1"/>', xml)
+            entries[key] = xml.encode("utf-8")
+    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as zout:
+        for name, data in entries.items():
+            zout.writestr(name, data)
+
+
+def test_invalid_suffix_raises_value_error(tmp_path):
+    master_dir = tmp_path / "master"
+    master_dir.mkdir()
+    config = _cfg(str(master_dir), [])
+    p = WorkbookProcessor()
+    with pytest.raises(ValueError, match="Suffix"):
+        p.configure(config, "master.xlsx", "../../bad", [])
+
+
+def test_unknown_workbook_id_in_selection_emits_error_and_continues(tmp_path, qapp):
+    master_dir = tmp_path / "master"
+    master_dir.mkdir()
+    out_dir = tmp_path / "out"
+    out_dir.mkdir()
+    _wb(master_dir / "master.xlsx", {"Sheet1": [["val"]]})
+    _wb(out_dir / "report.xlsx", {"Sheet1": []})
+
+    config = _cfg(str(master_dir), [
+        _workbook("known", "report.xlsx", str(out_dir), [("Sheet1", "Sheet1")]),
+    ])
+    p = WorkbookProcessor()
+    cap = _Cap(p)
+    p.configure(config, "master.xlsx", "Q1", ["unknown_id", "known"])
+    p.run()
+
+    assert cap.errors == []
+    assert len(cap.finished) == 2
+    statuses = {r.workbook_id: r.status for r in cap.finished}
+    assert statuses["unknown_id"] == "error"
+    assert statuses["known"] == "success"
+
+
+def test_bad_dimension_metadata_copies_all_columns_and_clears_stale_data(tmp_path, qapp):
+    master_dir = tmp_path / "master"
+    master_dir.mkdir()
+    out_dir = tmp_path / "out"
+    out_dir.mkdir()
+
+    # Master has 3 columns but xlsx metadata says only A1
+    _wb_with_wrong_dimensions(
+        master_dir / "master.xlsx",
+        {"Sheet1": [["a", "b", "c"], ["1", "2", "3"]]},
+    )
+    # Target has 4 columns; first 3 should be overwritten, 4th preserved
+    book = openpyxl.Workbook()
+    ws = book.active
+    ws.title = "Sheet1"
+    ws.append(["old1", "old2", "old3", "keep"])
+    ws.append(["x", "y", "z", "keep2"])
+    ws.append(["stale", None, None, "keep3"])  # extra row that should be cleared
+    book.save(out_dir / "report.xlsx")
+
+    config = _cfg(str(master_dir), [_workbook("wb1", "report.xlsx", str(out_dir), [("Sheet1", "Sheet1")])])
+    p = WorkbookProcessor()
+    cap = _Cap(p)
+    p.configure(config, "master.xlsx", "Q1", ["wb1"])
+    p.run()
+
+    assert cap.errors == []
+    assert cap.finished[0].status == "success"
+
+    out = openpyxl.load_workbook(out_dir / "report_Q1.xlsx")
+    ws = out["Sheet1"]
+    assert ws.cell(1, 1).value == "a"
+    assert ws.cell(1, 2).value == "b"
+    assert ws.cell(1, 3).value == "c"
+    assert ws.cell(2, 1).value == "1"
+    assert ws.cell(2, 2).value == "2"
+    assert ws.cell(2, 3).value == "3"
+    assert ws.cell(1, 4).value == "keep"    # outside paste zone — preserved
+    assert ws.cell(2, 4).value == "keep2"
+    assert ws.cell(3, 1).value is None      # stale row cleared
+    assert ws.cell(3, 4).value == "keep3"   # outside paste zone — preserved

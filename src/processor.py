@@ -1,3 +1,4 @@
+import re
 import time
 from datetime import datetime
 from pathlib import Path
@@ -7,6 +8,8 @@ from PySide6.QtCore import QThread, Signal
 
 from src.config import Config, Workbook, DEFAULT_LOG_PATH
 from src.log import RunRecord, RunResult, append_record
+
+_SUFFIX_RE = re.compile(r"^[a-zA-Z0-9_-]+$")
 
 
 def _output_path(wb: Workbook, suffix: str) -> Path:
@@ -41,6 +44,10 @@ class WorkbookProcessor(QThread):
         suffix: str,
         selected_ids: list[str],
     ) -> None:
+        if self.isRunning():
+            raise RuntimeError("Cannot configure processor while it is running.")
+        if not _SUFFIX_RE.match(suffix):
+            raise ValueError("Suffix must contain only alphanumeric characters, underscores, or dashes.")
         self._config = config
         self._input_filename = input_filename
         self._suffix = suffix
@@ -52,13 +59,11 @@ class WorkbookProcessor(QThread):
         input_filename = self._input_filename
         selected_ids = self._selected_ids
 
-        # 1. Validate master file
         master_path = Path(config.input_folder) / input_filename
         if not master_path.exists():
             self.run_error.emit(f"Master file not found: {master_path}")
             return
 
-        # 2. Open master read-only; data_only=True returns cached values, not formulas
         try:
             master_wb = openpyxl.load_workbook(master_path, read_only=True, data_only=True)
         except Exception as exc:
@@ -68,7 +73,6 @@ class WorkbookProcessor(QThread):
         wb_map = {wb.id: wb for wb in config.workbooks}
         results: list[RunResult] = []
 
-        # 3. Process each selected workbook in order; finally ensures handle is always closed
         try:
             for wb_id in selected_ids:
                 self.workbook_started.emit(wb_id)
@@ -85,114 +89,14 @@ class WorkbookProcessor(QThread):
                         rows_written=0,
                         duration_ms=int((time.monotonic() - t0) * 1000),
                     )
-                    self.workbook_finished.emit(r)
-                    results.append(r)
-                    continue
+                else:
+                    r = self._process_single_workbook(wb_cfg, master_wb, suffix, t0)
 
-                output_path = _output_path(wb_cfg, suffix)
-                target_path = Path(wb_cfg.folder) / wb_cfg.filename
-
-                def _error(msg: str, _id=wb_id, _cfg=wb_cfg, _t0=t0) -> RunResult:
-                    return RunResult(
-                        workbook_id=_id,
-                        filename=_cfg.filename,
-                        status="error",
-                        message=msg,
-                        output_filename=None,
-                        rows_written=0,
-                        duration_ms=int((time.monotonic() - _t0) * 1000),
-                    )
-
-                # b. Check target exists
-                if not target_path.exists():
-                    r = _error(f"Target file not found: {wb_cfg.filename}")
-                    self.workbook_finished.emit(r)
-                    results.append(r)
-                    continue
-
-                # c. Detect file lock via exclusive open attempt
-                try:
-                    fh = open(target_path, "r+b")
-                    fh.close()
-                except PermissionError:
-                    r = _error("File is open in another application — close it and re-run")
-                    self.workbook_finished.emit(r)
-                    results.append(r)
-                    continue
-
-                target_wb = None
-                try:
-                    try:
-                        target_wb = openpyxl.load_workbook(target_path)
-                    except Exception as exc:
-                        r = _error(f"Could not open target file: {exc}")
-                        self.workbook_finished.emit(r)
-                        results.append(r)
-                        continue
-
-                    # d. Apply each tab mapping
-                    any_skipped = False
-                    rows_written = 0
-
-                    for mapping in wb_cfg.mappings:
-                        if mapping.input not in master_wb.sheetnames:
-                            any_skipped = True
-                            continue
-                        if mapping.target not in target_wb.sheetnames:
-                            any_skipped = True
-                            continue
-
-                        master_ws = master_wb[mapping.input]
-                        target_ws = target_wb[mapping.target]
-
-                        # Read master dimensions before iterating (read-only streams)
-                        master_max_col = master_ws.max_column or 0
-                        master_max_row = master_ws.max_row or 0
-                        target_max_row = target_ws.max_row or 0
-
-                        # Clear paste zone: A1 → target.max_row × master.max_column
-                        for row in range(1, target_max_row + 1):
-                            for col in range(1, master_max_col + 1):
-                                target_ws.cell(row=row, column=col).value = None
-
-                        # Write values only (data_only=True already strips formulas)
-                        for r_i, row_vals in enumerate(
-                            master_ws.iter_rows(values_only=True), start=1
-                        ):
-                            for c_i, value in enumerate(row_vals, start=1):
-                                target_ws.cell(row=r_i, column=c_i).value = value
-
-                        rows_written += master_max_row
-
-                    # e. Save output file
-                    try:
-                        target_wb.save(output_path)
-                    except (PermissionError, OSError) as exc:
-                        r = _error(f"Could not save output: {exc}")
-                        self.workbook_finished.emit(r)
-                        results.append(r)
-                        continue
-
-                    status = "skipped" if any_skipped else "success"
-                    r = RunResult(
-                        workbook_id=wb_id,
-                        filename=wb_cfg.filename,
-                        status=status,
-                        message="",
-                        output_filename=output_path.name,
-                        rows_written=rows_written,
-                        duration_ms=int((time.monotonic() - t0) * 1000),
-                    )
-                    self.workbook_finished.emit(r)
-                    results.append(r)
-                finally:
-                    if target_wb is not None:
-                        target_wb.close()
-
+                self.workbook_finished.emit(r)
+                results.append(r)
         finally:
             master_wb.close()
 
-        # 4. Persist run record before notifying UI so a write failure surfaces as run_error
         try:
             record = RunRecord(
                 timestamp=datetime.now().isoformat(timespec="seconds"),
@@ -206,3 +110,92 @@ class WorkbookProcessor(QThread):
             return
 
         self.run_complete.emit(results)
+
+    def _process_single_workbook(
+        self,
+        wb_cfg: Workbook,
+        master_wb: openpyxl.Workbook,
+        suffix: str,
+        t0: float,
+    ) -> RunResult:
+        output_path = _output_path(wb_cfg, suffix)
+        target_path = Path(wb_cfg.folder) / wb_cfg.filename
+
+        def _error(msg: str) -> RunResult:
+            return RunResult(
+                workbook_id=wb_cfg.id,
+                filename=wb_cfg.filename,
+                status="error",
+                message=msg,
+                output_filename=None,
+                rows_written=0,
+                duration_ms=int((time.monotonic() - t0) * 1000),
+            )
+
+        if not target_path.exists():
+            return _error(f"Target file not found: {wb_cfg.filename}")
+
+        try:
+            with open(target_path, "r+b"):
+                pass
+        except PermissionError:
+            return _error("File is open in another application — close it and re-run")
+
+        target_wb = None
+        try:
+            try:
+                target_wb = openpyxl.load_workbook(target_path)
+            except Exception as exc:
+                return _error(f"Could not open target file: {exc}")
+
+            any_skipped = False
+            rows_written = 0
+
+            for mapping in wb_cfg.mappings:
+                if mapping.input not in master_wb.sheetnames:
+                    any_skipped = True
+                    continue
+                if mapping.target not in target_wb.sheetnames:
+                    any_skipped = True
+                    continue
+
+                master_ws = master_wb[mapping.input]
+                target_ws = target_wb[mapping.target]
+
+                # Reset XML-derived dimension cache; load all rows to get true dimensions.
+                # openpyxl read-only mode reads max_column/max_row from the <dimension> tag,
+                # which is often wrong or missing in files from pandas/xlsxwriter/Google Sheets.
+                master_ws.reset_dimensions()
+                master_rows = list(master_ws.iter_rows(values_only=True))
+                master_max_row = len(master_rows)
+                master_max_col = max((len(row) for row in master_rows), default=0)
+                target_max_row = target_ws.max_row or 0
+
+                for row in range(1, target_max_row + 1):
+                    for col in range(1, master_max_col + 1):
+                        target_ws.cell(row=row, column=col).value = None
+
+                for r_i, row_vals in enumerate(master_rows, start=1):
+                    for c_i, value in enumerate(row_vals, start=1):
+                        target_ws.cell(row=r_i, column=c_i).value = value
+
+                rows_written += master_max_row
+
+            try:
+                target_wb.save(output_path)
+            except (PermissionError, OSError) as exc:
+                return _error(f"Could not save output: {exc}")
+
+            status = "skipped" if any_skipped else "success"
+            return RunResult(
+                workbook_id=wb_cfg.id,
+                filename=wb_cfg.filename,
+                status=status,
+                message="",
+                output_filename=output_path.name,
+                rows_written=rows_written,
+                duration_ms=int((time.monotonic() - t0) * 1000),
+            )
+        finally:
+            if target_wb is not None:
+                target_wb.close()
