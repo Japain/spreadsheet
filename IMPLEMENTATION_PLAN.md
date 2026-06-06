@@ -53,46 +53,46 @@ Every phase follows this TDD loop: **write failing tests → implement to pass �
 
 ---
 
-## Phase 3 — Processing Logic (`src/processor.py`)
+## Phase 3 — Processing Logic (`src/processor.py`) ✓
 
 **Test file:** `tests/test_processor.py` — uses `tmp_path` fixture and real `.xlsx` files built with openpyxl; no mocking of file I/O.
 
-- [ ] **Test:** `check_conflicts` returns empty list when no output files exist
-- [ ] **Test:** `check_conflicts` returns filenames of pre-existing output files
-- [ ] **Test:** successful run writes correct values to output file, leaves source unchanged
-- [ ] **Test:** master file not found emits `run_error`, no output files created
-- [ ] **Test:** target file not found → `RunResult(status="error")`, other workbooks still process
-- [ ] **Test:** missing input tab → mapping skipped, workbook still saved with `status="skipped"`
-- [ ] **Test:** missing target tab → mapping skipped, same as above
-- [ ] **Test:** paste zone cleared before write (stale rows from a longer prior dataset are gone)
-- [ ] **Test:** values-only write — no formula strings in output cells
-- [ ] **Test:** columns right of `max_column` are untouched in output
-- [ ] `check_conflicts(config, selected_ids, suffix) -> list[str]` — synchronous pre-run check for existing output files
-- [ ] `WorkbookProcessor(QThread)` class skeleton with signals:
+- [x] **Test:** `check_conflicts` returns empty list when no output files exist
+- [x] **Test:** `check_conflicts` returns filenames of pre-existing output files
+- [x] **Test:** successful run writes correct values to output file, leaves source unchanged
+- [x] **Test:** master file not found emits `run_error`, no output files created
+- [x] **Test:** target file not found → `RunResult(status="error")`, other workbooks still process
+- [x] **Test:** missing input tab → mapping skipped, workbook still saved with `status="skipped"`
+- [x] **Test:** missing target tab → mapping skipped, same as above
+- [x] **Test:** paste zone cleared before write (stale rows from a longer prior dataset are gone)
+- [x] **Test:** values-only write — no formula strings in output cells
+- [x] **Test:** columns right of `max_column` are untouched in output
+- [x] `check_conflicts(config, selected_ids, suffix) -> list[str]` — synchronous pre-run check for existing output files
+- [x] `WorkbookProcessor(QThread)` class skeleton with signals:
   - `workbook_started = Signal(str)`
   - `workbook_finished = Signal(RunResult)`
   - `run_complete = Signal(list)`
   - `run_error = Signal(str)`
-- [ ] `configure(config, input_filename, suffix, selected_ids)` method
-- [ ] `run()` entry point implementing the full run sequence:
-  - [ ] Resolve and validate master file path; emit `run_error` and stop if not found
-  - [ ] Open master workbook read-only via openpyxl
-  - [ ] Iterate selected workbooks in order:
-    - [ ] Emit `workbook_started`
-    - [ ] Open target file; on missing → `RunResult(status="error")`, continue
-    - [ ] **Test:** locked file emits `workbook_finished` with `RunResult(status="error")` and processor continues to next workbook
-    - [ ] Detect file lock (exclusive open attempt); on locked → emit `workbook_finished` with `RunResult(status="error")`, continue
-    - [ ] For each `TabMapping`:
-      - [ ] Look up input sheet in master; on missing → log, mark skipped, continue
-      - [ ] Look up target sheet; on missing → log, mark skipped, continue
-      - [ ] Clear paste zone: A1 → last used row × master `max_column`, set values to `None`
-      - [ ] Write values only (`cell.value = master_cell.value`) from A1
-    - [ ] **Test:** unwritable output folder emits `workbook_finished` with `RunResult(status="error")` and processor continues to next workbook
-    - [ ] Save output as `{base}_{suffix}.xlsx` in target folder; on unwritable → emit `workbook_finished` with `RunResult(status="error")`, continue
-    - [ ] Emit `workbook_finished` with `RunResult`
-  - [ ] Emit `run_complete` with all results
-  - [ ] Append `RunRecord` to `runs.log`
-- [ ] Status logic: `"success"` = all mappings written; `"skipped"` = ≥1 mapping skipped but file saved; `"error"` = workbook skipped entirely
+- [x] `configure(config, input_filename, suffix, selected_ids)` method
+- [x] `run()` entry point implementing the full run sequence:
+  - [x] Resolve and validate master file path; emit `run_error` and stop if not found
+  - [x] Open master workbook read-only via openpyxl
+  - [x] Iterate selected workbooks in order:
+    - [x] Emit `workbook_started`
+    - [x] Open target file; on missing → `RunResult(status="error")`, continue
+    - [x] **Test:** locked file emits `workbook_finished` with `RunResult(status="error")` and processor continues to next workbook
+    - [x] Detect file lock (exclusive open attempt); on locked → emit `workbook_finished` with `RunResult(status="error")`, continue
+    - [x] For each `TabMapping`:
+      - [x] Look up input sheet in master; on missing → log, mark skipped, continue
+      - [x] Look up target sheet; on missing → log, mark skipped, continue
+      - [x] Clear paste zone: A1 → last used row × master `max_column`, set values to `None`
+      - [x] Write values only (`cell.value = master_cell.value`) from A1
+    - [x] **Test:** unwritable output folder emits `workbook_finished` with `RunResult(status="error")` and processor continues to next workbook
+    - [x] Save output as `{base}_{suffix}.xlsx` in target folder; on unwritable → emit `workbook_finished` with `RunResult(status="error")`, continue
+    - [x] Emit `workbook_finished` with `RunResult`
+  - [x] Emit `run_complete` with all results
+  - [x] Append `RunRecord` to `runs.log`
+- [x] Status logic: `"success"` = all mappings written; `"skipped"` = ≥1 mapping skipped but file saved; `"error"` = workbook skipped entirely
 
 ---
 
