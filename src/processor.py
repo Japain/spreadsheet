@@ -19,6 +19,8 @@ def _output_path(wb: Workbook, suffix: str) -> Path:
 
 def check_conflicts(config: Config, selected_ids: list[str], suffix: str) -> list[str]:
     """Return output filenames that already exist on disk for the given selection."""
+    if not _SUFFIX_RE.match(suffix):
+        raise ValueError("Suffix must contain only alphanumeric characters, underscores, or dashes.")
     wb_map = {wb.id: wb for wb in config.workbooks}
     conflicts = []
     for wb_id in selected_ids:
@@ -139,7 +141,7 @@ class WorkbookProcessor(QThread):
             with open(target_path, "r+b"):
                 pass
         except PermissionError:
-            return _error("File is open in another application — close it and re-run")
+            return _error("File could not be accessed — it may be locked or you may not have write permission")
 
         target_wb = None
         try:

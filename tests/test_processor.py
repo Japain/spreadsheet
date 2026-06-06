@@ -79,6 +79,11 @@ def test_check_conflicts_returns_conflicting_filenames(tmp_path):
     assert check_conflicts(config, ["wb1"], "Q1") == ["report_Q1.xlsx"]
 
 
+def test_check_conflicts_invalid_suffix_raises_value_error():
+    with pytest.raises(ValueError, match="Suffix"):
+        check_conflicts(_cfg("", []), [], "../../bad")
+
+
 # ── WorkbookProcessor.run() ───────────────────────────────────────────────────
 
 def test_successful_run_writes_values_leaves_source_unchanged(tmp_path, qapp):
@@ -112,6 +117,8 @@ def test_successful_run_writes_values_leaves_source_unchanged(tmp_path, qapp):
     # Source (original target) is unchanged — no data written into it
     src = openpyxl.load_workbook(out_dir / "report.xlsx")
     assert all(cell.value is None for row in src["Sheet1"].iter_rows() for cell in row)
+    out.close()
+    src.close()
 
 
 def test_master_not_found_emits_run_error_no_output_created(tmp_path, qapp):
@@ -239,6 +246,7 @@ def test_paste_zone_cleared_before_write(tmp_path, qapp):
     assert ws.cell(3, 1).value is None
     assert ws.cell(4, 1).value is None
     assert ws.cell(5, 1).value is None
+    out.close()
 
 
 def test_values_only_write_no_formula_strings_in_output(tmp_path, qapp):
@@ -272,6 +280,7 @@ def test_values_only_write_no_formula_strings_in_output(tmp_path, qapp):
                 assert not str(cell.value).startswith("="), (
                     f"{cell.coordinate} contains formula: {cell.value!r}"
                 )
+    out.close()
 
 
 def test_columns_right_of_max_column_untouched(tmp_path, qapp):
@@ -307,6 +316,7 @@ def test_columns_right_of_max_column_untouched(tmp_path, qapp):
     assert ws.cell(1, 2).value == "m2"
     assert ws.cell(1, 3).value == "keep_c"
     assert ws.cell(1, 4).value == "keep_d"
+    out.close()
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="chmod-based lock simulation not reliable on Windows")
@@ -463,3 +473,4 @@ def test_bad_dimension_metadata_copies_all_columns_and_clears_stale_data(tmp_pat
     assert ws.cell(2, 4).value == "keep2"
     assert ws.cell(3, 1).value is None      # stale row cleared
     assert ws.cell(3, 4).value == "keep3"   # outside paste zone — preserved
+    out.close()
