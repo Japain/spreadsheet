@@ -19,7 +19,7 @@ pip install -r requirements.txt
 
 ```bash
 source venv/bin/activate
-python src/main.py
+python -m src.main
 ```
 
 ## Testing

@@ -51,7 +51,7 @@ from PySide6.QtWidgets import QWidget
 
 
 class SettingsView(QWidget):
-    def __init__(self, parent: QWidget | None = None):
+    def __init__(self, config: Config, parent: QWidget | None = None):
         super().__init__(parent)
 ```
 
@@ -190,7 +190,7 @@ class MainWindow(QMainWindow):
         self.setStyleSheet(STYLESHEET)
 
         self._main_view = MainView(config)
-        self._settings_view = SettingsView()
+        self._settings_view = SettingsView(config)
         self._history_view = HistoryView()
 
         self._stack = QStackedWidget()
@@ -328,7 +328,7 @@ Expected: all tests pass.
 - [ ] **Step 4: Smoke-test the app visually**
 
 ```bash
-source venv/bin/activate && python src/main.py
+source venv/bin/activate && python -m src.main
 ```
 
 Expected: a 1280×820 window opens with a sidebar showing "Q / Quarterly / Workbook Updater", three nav buttons (Run, Configure, Run History), and a blank content area. Clicking each nav button should switch the active highlight on the sidebar. Close with the window's × button.
@@ -359,7 +359,7 @@ git commit -m "feat: Phase 10 skeleton — MainWindow with sidebar nav and stub 
 | Nav items switch pages | Task 3 `_switch_page` + test coverage |
 | Config loaded at startup | Task 3 `Config.load(DEFAULT_CONFIG_PATH)` |
 | Config passed to MainView | Task 3 `MainView(config)` |
-| Stub files with correct signatures | Task 1 — `MainView(config)`, `SettingsView()`, `HistoryView()` |
+| Stub files with correct signatures | Task 1 — `MainView(config)`, `SettingsView(config)`, `HistoryView()` |
 | Clicking Configure → SettingsView | Task 2 + 3 test |
 | Clicking Run History → HistoryView | Task 2 + 3 test |
 

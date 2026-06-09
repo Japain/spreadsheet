@@ -135,7 +135,7 @@ def main() -> None:
     app.setApplicationName("quarterly")
     try:
         window = MainWindow()
-    except ValueError as e:
+    except (ValueError, OSError) as e:
         QMessageBox.critical(
             None,
             "Configuration Error",
