@@ -69,4 +69,23 @@ QLabel#tab_chip {
     padding: 1px 6px;
     font-size: 11px;
 }
+
+QPushButton#nav_item {
+    text-align: left;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    color: #1b1d22;
+    background: transparent;
+}
+
+QPushButton#nav_item:hover {
+    background: #ebebeb;
+}
+
+QPushButton#nav_item[active=true] {
+    background: #e8ecfc;
+    color: #4b6bdf;
+    font-weight: bold;
+}
 """

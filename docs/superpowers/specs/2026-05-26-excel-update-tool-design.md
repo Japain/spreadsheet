@@ -113,6 +113,10 @@ Single `QMainWindow`, fixed 1280×820. Contains:
 - **Sidebar** (220px wide): brand mark, nav items (Run / Configure / Run History), footer with config path and version.
 - **Content area**: `QStackedWidget` swapping between `MainView`, `SettingsView`, `HistoryView`.
 
+**Implementation decisions (Phase 10 skeleton):**
+- Stub strategy: `main_view.py`, `settings_view.py`, `history_view.py` are created as minimal `QWidget` subclasses from day one so imports in `main.py` are correct immediately. Each phase fills in its file; `main.py` never needs import changes.
+- `Config.load(DEFAULT_CONFIG_PATH)` called at `MainWindow.__init__` and passed to `MainView` and `SettingsView`.
+
 ### 5.2 MainView (`ui/main_view.py`)
 
 Three vertical sections:
@@ -134,6 +138,10 @@ Three vertical sections:
 
 **Empty state** (replaces RunBar + WorkbookTable when `config.workbooks` is empty)
 - Centred card with icon, heading, description, and "Add target workbook" button that navigates to SettingsView
+
+**Implementation decisions (Phase 6):**
+- Suffix validation error style: red border + `QLabel` error message below the suffix field (hidden when valid)
+- `WorkbookTable` rows: custom `QWidget` rows inside a `QScrollArea` (not `QTableWidget`) — full control over per-row opacity dimming and `TabChip` layout
 
 ### 5.3 SettingsView (`ui/settings_view.py`)
 
