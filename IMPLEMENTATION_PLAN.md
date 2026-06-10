@@ -126,43 +126,43 @@ Every phase follows this TDD loop: **write failing tests → implement to pass �
 
 ---
 
-## Phase 6 — Main View (`src/ui/main_view.py`)
+## Phase 6 — Main View (`src/ui/main_view.py`) ✓
 
 **Test file:** `tests/ui/test_main_view.py` — uses `qtbot` with a minimal `Config`.
 
 ### RunBar
-- [ ] **Test:** Run button disabled when input file field is empty
-- [ ] **Test:** Run button disabled when suffix field is empty
-- [ ] **Test:** Run button disabled when suffix contains filesystem-illegal characters (`\/:*?"<>|`)
-- [ ] **Test:** Run button disabled when no workbook rows are checked
-- [ ] **Test:** Run button enabled when all three conditions are met (valid non-empty suffix, input file set, ≥1 checked row)
-- [ ] Input file text field + browse button (opens to `config.input_folder`)
-- [ ] Output suffix text field with `_` prefix label and `.xlsx` suffix label
-- [ ] Suffix validation: reject characters illegal on Windows filesystems (`\/:*?"<>|`); show inline error
-- [ ] Run button (disabled until input file, valid suffix, and ≥1 checked workbook are set)
-- [ ] Run button enable/disable logic wired to field changes and checkbox state
+- [x] **Test:** Run button disabled when input file field is empty
+- [x] **Test:** Run button disabled when suffix field is empty
+- [x] **Test:** Run button disabled when suffix contains filesystem-illegal characters (`\/:*?"<>|`)
+- [x] **Test:** Run button disabled when no workbook rows are checked
+- [x] **Test:** Run button enabled when all three conditions are met (valid non-empty suffix, input file set, ≥1 checked row)
+- [x] Input file text field + browse button (opens to `config.input_folder`)
+- [x] Output suffix text field with `_` prefix label and `.xlsx` suffix label
+- [x] Suffix validation: reject characters illegal on Windows filesystems (`\/:*?"<>|`); show inline error
+- [x] Run button (disabled until input file, valid suffix, and ≥1 checked workbook are set)
+- [x] Run button enable/disable logic wired to field changes and checkbox state
 
 ### WorkbookTable
-- [ ] **Test:** `get_selected_ids()` returns only IDs of checked rows
-- [ ] **Test:** header checkbox checks all rows; unchecking header unchecks all
-- [ ] Scrollable table with columns: Run (checkbox), Workbook, Input Tab(s), Target Tab(s), Folder
-- [ ] Rows dim (reduced opacity) when unchecked
-- [ ] Header checkbox toggles all row checkboxes
-- [ ] `get_selected_ids()` — returns list of checked workbook IDs
+- [x] **Test:** `get_selected_ids()` returns only IDs of checked rows
+- [x] **Test:** header checkbox checks all rows; unchecking header unchecks all
+- [x] Scrollable table with columns: Run (checkbox), Workbook, Input Tab(s), Target Tab(s), Folder
+- [x] Rows dim (reduced opacity) when unchecked
+- [x] Header checkbox toggles all row checkboxes
+- [x] `get_selected_ids()` — returns list of checked workbook IDs
 
 ### LogPanel
-- [ ] **Test:** LogPanel hidden on init; visible after `show_results()` called
-- [ ] **Test:** summary pill counts match the `RunResult` list passed in
-- [ ] Hidden by default; shown after run completes
-- [ ] Header: "Run complete", timestamp, suffix, summary pills (N ok / N skipped / N error)
-- [ ] Per-workbook rows: status icon, filename, message, output filename, row count, duration
-- [ ] "Copy log" button (copies plain-text summary to clipboard)
-- [ ] "Dismiss" button (hides panel)
+- [x] **Test:** LogPanel hidden on init; visible after `show_results()` called
+- [x] **Test:** summary pill counts match the `RunResult` list passed in
+- [x] Hidden by default; shown after run completes
+- [x] Header: "Run complete", timestamp, suffix, summary pills (N ok / N skipped / N error)
+- [x] Per-workbook rows: status icon, filename, message, output filename, row count, duration
+- [x] "Copy log" button (copies plain-text summary to clipboard)
+- [x] "Dismiss" button (hides panel)
 
 ### Empty State
-- [ ] **Test:** empty-state widget shown when `config.workbooks` is empty; RunBar hidden
-- [ ] Replaces RunBar + WorkbookTable when `config.workbooks` is empty
-- [ ] Centred card with icon, heading, description, and "Add target workbook" button that navigates to SettingsView
+- [x] **Test:** empty-state widget shown when `config.workbooks` is empty; RunBar hidden
+- [x] Replaces RunBar + WorkbookTable when `config.workbooks` is empty
+- [x] Centred card with icon, heading, description, and "Add target workbook" button that navigates to SettingsView
 
 ---
 

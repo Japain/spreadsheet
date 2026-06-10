@@ -39,3 +39,10 @@ def test_history_nav_switches_to_history_view(qtbot):
     assert window._nav_history.property("active") is True
     assert window._nav_run.property("active") is False
     assert window._nav_configure.property("active") is False
+
+
+def test_empty_state_add_workbook_navigates_to_settings(qtbot):
+    window = MainWindow(config=_config())
+    qtbot.addWidget(window)
+    window._main_view._empty_state._add_btn.click()
+    assert window._stack.currentIndex() == 1

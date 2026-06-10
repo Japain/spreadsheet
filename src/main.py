@@ -41,6 +41,8 @@ class MainWindow(QMainWindow):
         self._stack.addWidget(self._settings_view)  # index 1
         self._stack.addWidget(self._history_view)   # index 2
 
+        self._main_view.navigate_to_settings.connect(lambda: self._switch_page(1))
+
         sidebar = self._setup_sidebar()
 
         central = QWidget()
