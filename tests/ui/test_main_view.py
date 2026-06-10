@@ -135,6 +135,16 @@ def test_set_all_checked_unchecks_all_rows(qtbot, two_workbooks):
     assert not any(row._checkbox.isChecked() for row in view._workbook_table._rows)
 
 
+def test_set_all_checked_syncs_row_opacity(qtbot, two_workbooks):
+    view = MainView(two_workbooks)
+    qtbot.addWidget(view)
+    view._workbook_table.set_all_checked(False)
+    for row in view._workbook_table._rows:
+        assert row._opacity.opacity() == pytest.approx(0.4)
+    view._workbook_table.set_all_checked(True)
+    for row in view._workbook_table._rows:
+        assert row._opacity.opacity() == pytest.approx(1.0)
+
 
 # ── LogPanel ──────────────────────────────────────────────────────────────────
 

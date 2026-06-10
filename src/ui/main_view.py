@@ -123,6 +123,7 @@ class WorkbookTable(QWidget):
             row._checkbox.blockSignals(True)
             row._checkbox.setChecked(checked)
             row._checkbox.blockSignals(False)
+            row._update_opacity()
         self.selection_changed.emit()
 
     def get_selected_ids(self) -> list[str]:
