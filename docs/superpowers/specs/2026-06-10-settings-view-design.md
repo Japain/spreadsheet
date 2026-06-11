@@ -155,6 +155,147 @@ All tests verify both in-memory state and the config JSON on disk to confirm aut
 
 ---
 
+## Visual QA
+
+### Goal
+
+Confirm `SettingsView` matches the **V1 "Quarterly"** design reference:
+`docs/design/spreadsheets/project/Excel Update Tool · standalone.html`, V1 section → Configure view
+(`V1Settings` component, accessed via the "Configure" sidebar item inside the V1 artboard).
+
+> **Colour note:** The design and the PySide6 app share the same light palette (`#f4f5f9` background,
+> `#ffffff` cards, `#4b6bdf` accent). Colour should match — flag deviations.
+
+---
+
+### Step 1 — Capture reference screenshots with Playwright
+
+Create `scripts/qa_settings_reference.py`:
+
+```python
+from playwright.sync_api import sync_playwright
+from pathlib import Path
+
+DESIGN = (
+    Path(__file__).parents[1]
+    / "docs/design/spreadsheets/project/Excel Update Tool · standalone.html"
+).resolve()
+OUT = Path("docs/qa/reference")
+OUT.mkdir(parents=True, exist_ok=True)
+
+with sync_playwright() as p:
+    browser = p.chromium.launch()
+    page = browser.new_page(viewport={"width": 1280, "height": 820})
+    page.goto(f"file://{DESIGN}")
+    page.wait_for_timeout(1200)  # let React + Babel render
+
+    # The V1 app is the first interactive artboard; click Configure in its sidebar.
+    # Playwright resolves coordinates through the design canvas transform.
+    page.locator(".v1-side-item", has_text="Configure").first().click()
+    page.wait_for_timeout(400)
+
+    # State 1: first workbook auto-selected (populated right pane)
+    page.screenshot(path=str(OUT / "settings_populated.png"))
+
+    # State 2: clip just the two-pane settings area (below the global card)
+    page.screenshot(
+        path=str(OUT / "settings_panes.png"),
+        clip={"x": 220, "y": 200, "width": 1060, "height": 620},
+    )
+
+    browser.close()
+
+print("Saved to docs/qa/reference/")
+```
+
+Run with:
+```
+pip install playwright && playwright install chromium
+python scripts/qa_settings_reference.py
+```
+
+---
+
+### Step 2 — Capture app screenshots via Qt grab
+
+Create `scripts/qa_settings_app.py`:
+
+```python
+import os, sys
+os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
+from pathlib import Path
+from PySide6.QtWidgets import QApplication
+from src.config import Config, Workbook, TabMapping
+from src.ui.settings_view import SettingsView
+
+OUT = Path("docs/qa/actual")
+OUT.mkdir(parents=True, exist_ok=True)
+
+app = QApplication.instance() or QApplication(sys.argv)
+
+config_path = Path("/tmp/qa_settings_config.json")
+config = Config(
+    input_folder="C:/FP&A/Q1_2026",
+    workbooks=[
+        Workbook(id="wb1", filename="Report_EMEA.xlsx", folder="C:/Reports/EMEA",
+                 mappings=[TabMapping(input="Revenue", target="Q_Data")]),
+        Workbook(id="wb2", filename="Report_APAC.xlsx", folder="C:/Reports/APAC",
+                 mappings=[TabMapping(input="Revenue", target="Q_Data"),
+                            TabMapping(input="Summary", target="Summary")]),
+    ],
+)
+config.save(config_path)
+
+view = SettingsView(config, config_path)
+view.resize(1060, 740)  # content area width (1280 minus 220px sidebar)
+view.show()
+app.processEvents()
+
+# State 1: first workbook auto-selected
+view.grab().save(str(OUT / "settings_populated.png"))
+
+print("Saved to docs/qa/actual/")
+```
+
+Run with:
+```
+source venv/bin/activate
+python scripts/qa_settings_app.py
+```
+
+---
+
+### Step 3 — Visual checklist
+
+Open `docs/qa/reference/settings_populated.png` and `docs/qa/actual/settings_populated.png`
+side-by-side and verify each item:
+
+| # | Element | V1 reference | Pass criteria |
+|---|---|---|---|
+| 1 | Global settings card | Full-width single card; one field (default input folder + browse) + note text | Single-column card; input folder field present; no second column |
+| 2 | Two-pane grid | Left pane wider than right (`1.5fr 1fr` split) | Left list visibly wider than the detail pane |
+| 3 | List row structure | Excel icon → filename (bold 13px) → folder path (mono 11.5px) → mapping chips | Three tiers; chips show `input → target`; Excel icon present |
+| 4 | Active row highlight | Light blue/indigo tint background; no left border | Selected row has distinct background tint; no hard left border |
+| 5 | List header | "Target workbooks (N)" label + "Add" button (right-aligned) | Title with count and Add button in header |
+| 6 | Empty list placeholder | "No workbooks yet. Click **Add** to create one." | Placeholder text visible when list is empty |
+| 7 | Detail pane heading | "Edit workbook" (14px bold) + "Up to two tab mappings per workbook." subtitle | Heading + subtitle present at top of right pane |
+| 8 | Field vertical order | Filename → target folder (+ browse) → divider → mappings section → divider → Remove workbook | Same top-to-bottom order |
+| 9 | Mapping row columns | `1fr 16px 1fr 24px` — input / arrow (grey) / target / trash (ghost danger) | Four columns; narrow arrow; trash is low-visual-weight danger style |
+| 10 | "Tab mappings" header | "Tab mappings · N/2" label + "Add mapping" button (disabled at 2) | Count shown; button disabled state visible when at limit |
+| 11 | Column sub-headers | "Input tab (master)" / "Target tab (this workbook)" small grey labels | Both sub-headers present above mapping rows |
+| 12 | Remove workbook button | Danger-ghost style (red text, no fill), right-aligned, below final divider | Low-fill danger button at bottom right of detail pane |
+| 13 | Empty right pane | "Select a workbook to edit its mappings, or add a new one." | Placeholder text when nothing selected |
+
+---
+
+### Step 4 — Add scripts to Files Changed
+
+Once `scripts/qa_settings_reference.py` and `scripts/qa_settings_app.py` exist, add them to
+the file list below.
+
+---
+
 ## Files Changed
 
 | File | Change |

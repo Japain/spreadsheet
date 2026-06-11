@@ -170,26 +170,39 @@ Every phase follows this TDD loop: **write failing tests → implement to pass �
 
 ## Phase 7 — Settings View (`src/ui/settings_view.py`)
 
-**Design spec:** `docs/superpowers/specs/2026-06-10-settings-view-design.md` — under review
+**Design spec:** `docs/superpowers/specs/2026-06-10-settings-view-design.md`
 
 **Test file:** `tests/ui/test_settings_view.py` — uses `qtbot` and `tmp_path` for config I/O.
 
-- [ ] **Test:** editing filename field auto-saves to config JSON
-- [ ] **Test:** "Add mapping" button disabled when 2 mappings exist
-- [ ] **Test:** "Remove mapping" button disabled (or hidden) when only 1 mapping exists, preventing zero-mapping workbooks
-- [ ] **Test:** newly added workbook starts with 1 default mapping and cannot be saved with 0 mappings
-- [ ] **Test:** "Remove workbook" removes workbook from config and list
-- [ ] **Test:** adding a new workbook shows it in the list and selects it
-- [ ] Global settings card: default input folder field + browse button; auto-saves on change
-- [ ] Two-pane layout:
-  - [ ] Left pane: scrollable workbook list (filename + folder + mapping chips); "Add" button in header
-  - [ ] Right pane: detail form for selected workbook
-    - [ ] Filename field
-    - [ ] Target folder field + browse button
-    - [ ] Tab mapping rows (1–2): input field → arrow → target field + remove button each; remove button disabled/hidden when only 1 mapping remains
-    - [ ] "Add mapping" button (disabled when 2 mappings exist)
-    - [ ] "Remove workbook" danger button at bottom
-- [ ] All edits auto-save to `config.json` immediately on change
+- [x] **Test:** editing filename field auto-saves to config JSON
+- [x] **Test:** "Add mapping" button disabled when 2 mappings exist
+- [x] **Test:** "Remove mapping" button disabled (or hidden) when only 1 mapping exists, preventing zero-mapping workbooks
+- [x] **Test:** newly added workbook starts with 1 default mapping and cannot be saved with 0 mappings
+- [x] **Test:** "Remove workbook" removes workbook from config and list
+- [x] **Test:** adding a new workbook shows it in the list and selects it
+
+### Known gaps — resolved
+
+- [x] `test_add_workbook_shows_and_selects` — added left list item count assertion
+- [x] `test_add_workbook_shows_and_selects` — added `Config.load()` disk check
+- [x] `test_add_mapping_disabled_at_two` — added `Config.load()` disk check
+- [x] `test_new_workbook_has_one_mapping` — added `Config.load()` disk check
+- [x] Placeholder text trailing period removed
+- [x] List items now show green Excel icon before filename (V1 checklist item 3)
+- [x] Mapping chips are now styled gray monospace pill chips (V1 checklist item 3)
+- [x] Left pane header now shows `"Target workbooks (N)"` count (V1 checklist item 5)
+- [x] Remove mapping button is now danger-ghost style (V1 checklist item 9)
+- [x] Remove workbook button is now danger-ghost red style (V1 checklist item 12)
+- [x] Global settings card: default input folder field + browse button; auto-saves on change
+- [x] Two-pane layout:
+  - [x] Left pane: scrollable workbook list (filename + folder + mapping chips); "Add" button in header
+  - [x] Right pane: detail form for selected workbook
+    - [x] Filename field
+    - [x] Target folder field + browse button
+    - [x] Tab mapping rows (1–2): input field → arrow → target field + remove button each; remove button disabled/hidden when only 1 mapping remains
+    - [x] "Add mapping" button (disabled when 2 mappings exist)
+    - [x] "Remove workbook" danger button at bottom
+- [x] All edits auto-save to `config.json` immediately on change
 
 ---
 

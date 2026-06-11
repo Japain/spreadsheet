@@ -88,4 +88,31 @@ QPushButton#nav_item[active=true] {
     color: #4b6bdf;
     font-weight: bold;
 }
+
+QPushButton#remove_workbook_btn {
+    color: #c42b1c;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+}
+
+QPushButton#remove_workbook_btn:hover {
+    background: rgba(196, 43, 28, 0.08);
+}
+
+QPushButton#remove_mapping_btn {
+    color: #c42b1c;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+}
+
+QPushButton#remove_mapping_btn:hover {
+    background: rgba(196, 43, 28, 0.08);
+}
+
+QPushButton#remove_mapping_btn:disabled {
+    color: rgba(196, 43, 28, 0.35);
+}
 """
