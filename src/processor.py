@@ -1,4 +1,3 @@
-import re
 import time
 from datetime import datetime
 from pathlib import Path
@@ -8,8 +7,7 @@ from PySide6.QtCore import QThread, Signal
 
 from src.config import Config, Workbook, DEFAULT_LOG_PATH
 from src.log import RunRecord, RunResult, append_record
-
-_SUFFIX_RE = re.compile(r"^[a-zA-Z0-9_-]+$")
+from src.validation import SUFFIX_RE as _SUFFIX_RE
 
 
 def _output_path(wb: Workbook, suffix: str) -> Path:

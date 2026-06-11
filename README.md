@@ -29,6 +29,69 @@ source venv/bin/activate
 pytest
 ```
 
+## Manual QA
+
+Launch the app against a temporary config with sample workbooks:
+
+```bash
+source venv/bin/activate
+python -c "
+import sys
+from PySide6.QtWidgets import QApplication
+from src.config import Config, Workbook, TabMapping
+from src.main import MainWindow
+
+app = QApplication(sys.argv)
+cfg = Config(
+    input_folder='/tmp',
+    workbooks=[
+        Workbook('wb1', 'Revenue_Report.xlsx', '/tmp', [TabMapping('Data', 'Data')]),
+        Workbook('wb2', 'Cost_Analysis.xlsx',  '/tmp', [TabMapping('Actuals', 'Actuals')]),
+    ],
+)
+w = MainWindow(config=cfg)
+w.show()
+sys.exit(app.exec())
+"
+```
+
+**Run screen checklist**
+
+| Scenario | Expected |
+|---|---|
+| App opens | WorkbookTable shows both rows, Run button disabled |
+| Set input file path only | Run button still disabled |
+| Set valid suffix (e.g. `Q1`) + input file | Run button enables |
+| Type a suffix with a space or dot (e.g. `my.suffix`) | Error label appears, Run button stays disabled |
+| Clear the bad char | Error label hides, Run button re-enables |
+| Uncheck all rows | Run button disables |
+| Click Browse | File dialog opens pre-navigated to `/tmp`; selecting a file fills the input field; cancelling leaves it unchanged |
+| Uncheck one row | That row dims; `get_selected_ids()` excludes it |
+| Header checkbox unchecks all | All rows dim, Run button disables |
+| Header checkbox checks all | All rows restore opacity |
+
+**Empty state checklist**
+
+```bash
+source venv/bin/activate
+python -c "
+import sys
+from PySide6.QtWidgets import QApplication
+from src.config import Config
+from src.main import MainWindow
+app = QApplication(sys.argv)
+w = MainWindow(config=Config(input_folder='', workbooks=[]))
+w.show()
+sys.exit(app.exec())
+"
+```
+
+| Scenario | Expected |
+|---|---|
+| App opens | Empty state card shown; RunBar hidden |
+| Click "Add target workbook" | Navigates to Configure (Settings) view |
+| Nav items | Run / Configure / Run History all switch views |
+
 ## Implementation Status
 
 | Phase | Description | Status |
@@ -38,8 +101,8 @@ pytest
 | 3 | Processing logic (`processor.py`) | ✅ Done |
 | 4 | Styling (`styles.py`) | ✅ Done |
 | 5 | Shared widgets (`widgets.py`) | ✅ Done |
+| 6 | Main view — `WorkbookTable`, `RunBar`, `LogPanel` | ✅ Done |
 | 10 | `MainWindow` — shell done; signal wiring after Phase 9 | 🔄 In Progress |
-| 6 | Main view — `WorkbookTable`, `RunBar`, `LogPanel` | 🔲 Pending |
 | 7 | Settings view | 🔲 Pending |
 | 8 | History view | 🔲 Pending |
 | 9 | Dialogs (`ConflictDialog`, `ProgressDialog`) | 🔲 Pending |
@@ -56,7 +119,7 @@ src/
   ui/
     styles.py       # Global QSS stylesheet
     widgets.py      # StatusPill, TabChip, HeaderCheckBox
-    main_view.py    # Main view (stub — Phase 6)
+    main_view.py    # Run screen — RunBar, WorkbookTable, LogPanel, empty state
     settings_view.py# Settings view (stub — Phase 7)
     history_view.py # History view (stub — Phase 8)
 tests/
