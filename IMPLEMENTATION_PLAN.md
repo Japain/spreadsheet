@@ -170,6 +170,8 @@ Every phase follows this TDD loop: **write failing tests → implement to pass �
 
 ## Phase 7 — Settings View (`src/ui/settings_view.py`)
 
+**Design spec:** `docs/superpowers/specs/2026-06-10-settings-view-design.md` — under review
+
 **Test file:** `tests/ui/test_settings_view.py` — uses `qtbot` and `tmp_path` for config I/O.
 
 - [ ] **Test:** editing filename field auto-saves to config JSON
