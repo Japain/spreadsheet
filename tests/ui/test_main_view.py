@@ -215,3 +215,9 @@ def test_empty_state_shown_and_run_bar_hidden_when_no_workbooks(qtbot, empty_con
     qtbot.addWidget(view)
     assert not view._empty_state.isHidden()
     assert view._run_bar.isHidden()
+
+
+def test_empty_state_has_card_object_name(qtbot, empty_config):
+    view = MainView(empty_config)
+    qtbot.addWidget(view)
+    assert view._empty_state.objectName() == "card"

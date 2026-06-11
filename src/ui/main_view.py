@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import re
-
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QApplication,
@@ -21,9 +19,7 @@ from PySide6.QtWidgets import (
 from src.config import Config, Workbook
 from src.log import RunResult
 from src.ui.widgets import HeaderCheckBox, TabChip
-
-# Mirrors processor._SUFFIX_RE — must stay in sync
-_SUFFIX_RE = re.compile(r"^[a-zA-Z0-9_-]+$")
+from src.validation import SUFFIX_RE as _SUFFIX_RE
 
 
 class WorkbookRow(QWidget):
@@ -264,6 +260,7 @@ class _EmptyState(QWidget):
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
+        self.setObjectName("card")
         icon = QLabel("📂")
         icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         heading = QLabel("No workbooks configured")

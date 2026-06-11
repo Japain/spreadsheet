@@ -154,10 +154,12 @@ Every phase follows this TDD loop: **write failing tests â†’ implement to pass â
 - [x] **Test:** LogPanel hidden on init; visible after `show_results()` called
 - [x] **Test:** summary pill counts match the `RunResult` list passed in
 - [x] Hidden by default; shown after run completes
-- [x] Header: "Run complete", timestamp, suffix, summary pills (N ok / N skipped / N error)
-- [x] Per-workbook rows: status icon, filename, message, output filename, row count, duration
+- [x] Header: "Run complete", suffix, summary pills (N ok / N skipped / N error)
+- [x] Per-workbook rows: status text, filename, message, output filename
 - [x] "Copy log" button (copies plain-text summary to clipboard)
 - [x] "Dismiss" button (hides panel)
+- [ ] *(deferred)* Header timestamp
+- [ ] *(deferred)* Per-workbook rows: status icon, row count, duration
 
 ### Empty State
 - [x] **Test:** empty-state widget shown when `config.workbooks` is empty; RunBar hidden

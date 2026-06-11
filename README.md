@@ -37,7 +37,6 @@ Launch the app against a temporary config with sample workbooks:
 source venv/bin/activate
 python -c "
 import sys
-from pathlib import Path
 from PySide6.QtWidgets import QApplication
 from src.config import Config, Workbook, TabMapping
 from src.main import MainWindow
