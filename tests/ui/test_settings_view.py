@@ -71,6 +71,15 @@ def test_remove_workbook(qtbot, view):
     assert len(list_items) == 0
 
 
+def test_input_folder_edit_autosaves(qtbot, view):
+    v, config_path = view
+    field = v.findChild(QLineEdit, "input_folder_field")
+    assert field is not None
+    qtbot.keyClicks(field, "/mydir")
+    loaded = Config.load(config_path)
+    assert loaded.input_folder == "/mydir"
+
+
 def test_add_workbook_shows_and_selects(qtbot, view):
     v, config_path = view
     add_wb_btn = v.findChild(QPushButton, "add_workbook_btn")

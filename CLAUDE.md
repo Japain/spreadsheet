@@ -2,6 +2,7 @@
 
 ## Git Workflow
 - **Never commit directly to `main`** — always create a feature branch first
+- **Prefer the GitHub MCP** (`mcp__plugin_github_github__*` tools) over the `gh` CLI for all GitHub operations (PRs, issues, comments, branches)
 
 ## Project Overview
 - PySide6 desktop app that copies Excel tab data between workbooks, packaged as a Windows `.exe` via PyInstaller (app name: `quarterly`)

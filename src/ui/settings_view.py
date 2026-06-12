@@ -198,6 +198,7 @@ class _WorkbookDetailPane(QWidget):
         del self._workbook.mappings[idx]
         self._save()
         self._rows.remove(row)
+        self._rows_layout.removeWidget(row)
         row.setParent(None)
         row.deleteLater()
         self._refresh_mapping_controls()
@@ -267,7 +268,7 @@ class _WorkbookListItem(QWidget):
         self._rebuild_chips(workbook)
 
     def set_selected(self, selected: bool) -> None:
-        self.setStyleSheet("background: oklch(0.96 0.03 254);" if selected else "")
+        self.setStyleSheet("background: #e8ecfc;" if selected else "")
 
     def _rebuild_chips(self, workbook: Workbook) -> None:
         while self._chips_layout.count():
@@ -325,6 +326,7 @@ class SettingsView(QWidget):
 
         layout.addWidget(QLabel("Default input folder"))
         self._input_folder_field = QLineEdit(self._config.input_folder)
+        self._input_folder_field.setObjectName("input_folder_field")
         browse_btn = QPushButton("Browse…")
         browse_btn.setFixedWidth(70)
         browse_btn.clicked.connect(self._browse_input_folder)
@@ -428,6 +430,7 @@ class SettingsView(QWidget):
             item.set_selected(i == index)
 
         if self._detail_pane is not None:
+            self._right_layout.removeWidget(self._detail_pane)
             self._detail_pane.setParent(None)
             self._detail_pane.deleteLater()
             self._detail_pane = None
@@ -473,10 +476,12 @@ class SettingsView(QWidget):
         self._config.save(self._config_path)
 
         item = self._list_items.pop(index)
+        self._list_layout.removeWidget(item)
         item.setParent(None)
         item.deleteLater()
 
         if self._detail_pane is not None:
+            self._right_layout.removeWidget(self._detail_pane)
             self._detail_pane.setParent(None)
             self._detail_pane.deleteLater()
             self._detail_pane = None
