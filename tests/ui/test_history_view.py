@@ -1,4 +1,3 @@
-import pytest
 from PySide6.QtWidgets import QLabel
 
 from src.log import RunRecord, RunResult, append_record

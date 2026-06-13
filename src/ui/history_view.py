@@ -29,10 +29,6 @@ class _HistoryRow(QWidget):
 
         suffix_label = QLabel(f"_{record.suffix}.xlsx")
         filename_label = QLabel(record.input_filename)
-        filename_label.setSizePolicy(
-            filename_label.sizePolicy().horizontalPolicy(),
-            filename_label.sizePolicy().verticalPolicy(),
-        )
 
         ok_pill = QLabel(f"{ok} ok")
         ok_pill.setObjectName("pill_success")
@@ -91,8 +87,10 @@ class HistoryView(QWidget):
         # Clear existing rows (everything before the trailing stretch)
         while self._rows_layout.count() > 1:
             item = self._rows_layout.takeAt(0)
-            if item.widget():
-                item.widget().setParent(None)
+            if item and item.widget():
+                widget = item.widget()
+                widget.setParent(None)
+                widget.deleteLater()
 
         if not records:
             self._empty_label.setVisible(True)
