@@ -83,6 +83,9 @@ class HistoryView(QWidget):
 
     def _reload(self) -> None:
         records = read_records(self._log_path)
+        
+        # Limit displayed records to prevent UI lag on large log files
+        records = records[:100]
 
         # Clear existing rows (everything before the trailing stretch)
         while self._rows_layout.count() > 1:
