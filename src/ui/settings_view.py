@@ -135,7 +135,7 @@ class SettingsView(QWidget):
         self._right_layout = QVBoxLayout(container)
         self._right_layout.setContentsMargins(0, 0, 0, 0)
 
-        self._placeholder = QLabel("Select a workbook to configure it")
+        self._placeholder = QLabel("Select a workbook to edit its mappings, or add a new one.")
         self._placeholder.setObjectName("detail_placeholder")
         self._placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._placeholder.setStyleSheet("color: #9aa0ad; font-size: 13px; padding: 40px;")
