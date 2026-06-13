@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
 
 from src.log import RunResult
 
-SPINNER_FRAMES = ["◜", "◝", "◞", "◟"]
+SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
 
 
 class ConflictDialog(QDialog):
