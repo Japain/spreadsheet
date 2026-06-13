@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from PySide6.QtCore import QTimer, Qt
+from PySide6.QtGui import QCloseEvent, QKeyEvent
 from PySide6.QtWidgets import (
     QDialog,
     QHBoxLayout,
@@ -132,26 +133,27 @@ class ProgressDialog(QDialog):
         row = self._rows.get(wb_id)
         if row is None:
             return
+        self._frame_index = 0
         self._current_row = row
         row.set_running(SPINNER_FRAMES[0])
         self._timer.start()
 
     def on_workbook_finished(self, result: RunResult) -> None:
+        self._timer.stop()
+        self._current_row = None
         row = self._rows.get(result.workbook_id)
         if row is None:
             return
-        self._timer.stop()
-        self._current_row = None
         row.set_done(result)
         self._progress_bar.setValue(self._progress_bar.value() + 1)
 
     def on_run_complete(self) -> None:
         self.accept()
 
-    def closeEvent(self, event) -> None:
+    def closeEvent(self, event: QCloseEvent) -> None:
         event.ignore()
 
-    def keyPressEvent(self, event) -> None:
+    def keyPressEvent(self, event: QKeyEvent) -> None:
         if event.key() == Qt.Key.Key_Escape:
             event.ignore()
         else:
