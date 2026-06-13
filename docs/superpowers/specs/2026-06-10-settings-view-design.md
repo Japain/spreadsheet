@@ -14,7 +14,7 @@ Implement `src/ui/settings_view.py`: a two-pane settings screen where the user m
 
 ## Architecture
 
-Four classes, all in `src/ui/settings_view.py`, following the same component decomposition pattern as `main_view.py`.
+Four classes, split into `src/ui/settings_view.py` plus a few small private sub-component modules, following the same component decomposition pattern as `main_view.py`.
 
 | Class | Role |
 |---|---|
