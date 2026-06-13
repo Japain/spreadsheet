@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import QTimer, Qt
 from PySide6.QtWidgets import (
     QDialog,
     QHBoxLayout,
@@ -90,6 +90,7 @@ class ProgressDialog(QDialog):
     def __init__(self, workbooks: list[tuple[str, str]], parent: QWidget | None = None):
         super().__init__(parent)
         self.setWindowTitle("Running…")
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowCloseButtonHint)
 
         self._rows: dict[str, _ProgressRow] = {}
         self._frame_index = 0
@@ -143,3 +144,15 @@ class ProgressDialog(QDialog):
         self._current_row = None
         row.set_done(result)
         self._progress_bar.setValue(self._progress_bar.value() + 1)
+
+    def on_run_complete(self) -> None:
+        self.accept()
+
+    def closeEvent(self, event) -> None:
+        event.ignore()
+
+    def keyPressEvent(self, event) -> None:
+        if event.key() == Qt.Key.Key_Escape:
+            event.ignore()
+        else:
+            super().keyPressEvent(event)

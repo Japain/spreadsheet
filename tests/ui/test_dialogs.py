@@ -71,3 +71,10 @@ def test_progress_row_transitions_error(qtbot):
     row = dialog._rows["wb-1"]
     assert row._indicator.text() == "✗"
     assert row._status.text() == "File could not be accessed"
+
+
+def test_progress_dialog_closes_on_run_complete(qtbot):
+    dialog = ProgressDialog([("wb-1", "report.xlsx")])
+    qtbot.addWidget(dialog)
+    dialog.on_run_complete()
+    assert dialog.result() == QDialog.DialogCode.Accepted
