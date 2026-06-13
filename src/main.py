@@ -33,7 +33,7 @@ class MainWindow(QMainWindow):
         self.setStyleSheet(STYLESHEET)
 
         self._main_view = MainView(config)
-        self._settings_view = SettingsView(config)
+        self._settings_view = SettingsView(config, DEFAULT_CONFIG_PATH)
         self._history_view = HistoryView()
 
         self._stack = QStackedWidget()
