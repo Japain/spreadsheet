@@ -31,7 +31,7 @@ class HistoryView(QWidget):
 
 | Field | Widget | Notes |
 |---|---|---|
-| Timestamp | `QLabel`, `objectName="monospace"` | ISO-8601 string from `RunRecord.timestamp` |
+| Timestamp | `QLabel`, `objectName="history_row_timestamp"`, `setProperty("monospace", True)` | ISO-8601 string from `RunRecord.timestamp`; objectName used for test lookup, property drives QSS monospace font via `QLabel[monospace=true]` |
 | Suffix | `QLabel` | `RunRecord.suffix` |
 | Input filename | `QLabel` | `RunRecord.input_filename` |
 | N ok | `QLabel`, `objectName="pill_success"` | count of `status=="success"` results |
