@@ -206,16 +206,18 @@ Every phase follows this TDD loop: **write failing tests → implement to pass �
 
 ---
 
-## Phase 8 — History View (`src/ui/history_view.py`)
+## Phase 8 — History View (`src/ui/history_view.py`) ✓
+
+**Design spec:** `docs/superpowers/specs/2026-06-12-history-view-design.md`
 
 **Test file:** `tests/ui/test_history_view.py`
 
-- [ ] **Test:** view populated with records in most-recent-first order
-- [ ] **Test:** empty state shown when log file does not exist
-- [ ] Reads `runs.log` on view activation
-- [ ] Scrollable list of `RunRecord` entries, most recent first
-- [ ] Each row: timestamp (monospace), suffix, input filename, result pill summary (N ok / N skipped / N error)
-- [ ] Empty state when no records exist
+- [x] **Test:** view populated with records in most-recent-first order
+- [x] **Test:** empty state shown when log file does not exist
+- [x] Reads `runs.log` on view activation
+- [x] Scrollable list of `RunRecord` entries, most recent first
+- [x] Each row: timestamp (monospace), suffix, input filename, result pill summary (N ok / N skipped / N error)
+- [x] Empty state when no records exist
 
 ---
 

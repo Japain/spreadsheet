@@ -37,7 +37,7 @@ QLabel#secondary {
     color: #6b7080;
 }
 
-QLabel#monospace {
+QLabel#monospace, QLabel[monospace=true] {
     font-family: "Cascadia Mono", Consolas, monospace;
 }
 
