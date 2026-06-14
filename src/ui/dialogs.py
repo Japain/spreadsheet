@@ -98,7 +98,7 @@ class _ProgressRow(QWidget):
         elif result.status == "skipped":
             self._indicator.setText("✗")
             self._indicator.setStyleSheet("color: #7a5c00; font-weight: bold;")
-            self._status.setText(result.message)
+            self._status.setText(result.message or "Skipped")
             self._status.setStyleSheet("color: #7a5c00;")
         else:
             self._indicator.setText("✗")
