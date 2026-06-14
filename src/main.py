@@ -128,38 +128,43 @@ class MainWindow(QMainWindow):
         return sidebar
 
     def _start_run(self) -> None:
-        input_file = self._main_view._run_bar._input_field.text()
-        suffix = self._main_view._run_bar._suffix_field.text()
-        selected_ids = self._main_view._workbook_table.get_selected_ids()
+        try:
+            if hasattr(self, '_processor'):
+                self._processor.wait()
+            self._main_view._run_bar._run_button.setEnabled(False)
 
-        conflicts = check_conflicts(self._config, selected_ids, suffix)
-        if conflicts:
-            dlg = ConflictDialog(conflicts, self)
-            if dlg.exec() != QDialog.DialogCode.Accepted:
-                return
+            input_file = self._main_view._run_bar._input_field.text()
+            suffix = self._main_view._run_bar._suffix_field.text()
+            selected_ids = self._main_view._workbook_table.get_selected_ids()
 
-        workbooks_for_dialog = [
-            (wb.id, wb.filename)
-            for wb in self._config.workbooks
-            if wb.id in selected_ids
-        ]
-        progress_dlg = ProgressDialog(workbooks_for_dialog, self)
+            conflicts = check_conflicts(self._config, selected_ids, suffix)
+            if conflicts:
+                dlg = ConflictDialog(conflicts, self)
+                if dlg.exec() != QDialog.DialogCode.Accepted:
+                    return
 
-        self._processor = WorkbookProcessor()
-        self._processor.configure(self._config, input_file, suffix, selected_ids)
+            workbooks_for_dialog = [
+                (wb.id, wb.filename)
+                for wb in self._config.workbooks
+                if wb.id in selected_ids
+            ]
+            progress_dlg = ProgressDialog(workbooks_for_dialog, self)
 
-        self._processor.workbook_started.connect(progress_dlg.on_workbook_started)
-        self._processor.workbook_finished.connect(progress_dlg.on_workbook_finished)
-        self._processor.run_complete.connect(lambda _: progress_dlg.on_run_complete())
-        self._processor.run_complete.connect(
-            lambda results: self._main_view.show_results(results, suffix)
-        )
-        self._processor.run_error.connect(
-            lambda msg: self._handle_run_error(progress_dlg, msg)
-        )
+            self._processor = WorkbookProcessor()
+            self._processor.configure(self._config, input_file, suffix, selected_ids)
 
-        self._processor.start()
-        progress_dlg.exec()
+            self._processor.workbook_started.connect(progress_dlg.on_workbook_started)
+            self._processor.workbook_finished.connect(progress_dlg.on_workbook_finished)
+            self._processor.run_complete.connect(lambda results, _: progress_dlg.on_run_complete())
+            self._processor.run_complete.connect(self._main_view.show_results)
+            self._processor.run_error.connect(
+                lambda msg: self._handle_run_error(progress_dlg, msg)
+            )
+
+            self._processor.start()
+            progress_dlg.exec()
+        finally:
+            self._main_view._update_run_button()
 
     def _handle_run_error(self, progress_dlg: ProgressDialog, message: str) -> None:
         progress_dlg.reject()

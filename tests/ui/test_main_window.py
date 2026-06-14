@@ -126,3 +126,88 @@ def test_run_with_no_conflicts_starts_processor(qtbot, monkeypatch):
     window._main_view._run_bar._run_button.click()
 
     assert processor_started
+
+
+def _make_fake_progress_dialog():
+    class FakeProgressDialog:
+        def __init__(self, *a, **kw):
+            pass
+
+        def exec(self):
+            pass
+
+        def on_workbook_started(self, wb_id):
+            pass
+
+        def on_workbook_finished(self, result):
+            pass
+
+    return FakeProgressDialog
+
+
+def test_run_button_disabled_during_run_and_re_enabled_after(qtbot, monkeypatch):
+    window = MainWindow(config=_config_with_workbooks())
+    qtbot.addWidget(window)
+    window._main_view._run_bar._input_field.setText("/tmp/master.xlsx")
+    window._main_view._run_bar._suffix_field.setText("q1")
+
+    button_state_during_start = []
+
+    class FakeProcessor:
+        def __init__(self):
+            self.workbook_started = MagicMock()
+            self.workbook_finished = MagicMock()
+            self.run_complete = MagicMock()
+            self.run_error = MagicMock()
+
+        def configure(self, *a, **kw):
+            pass
+
+        def start(self):
+            button_state_during_start.append(window._main_view._run_bar._run_button.isEnabled())
+
+        def wait(self):
+            pass
+
+    monkeypatch.setattr("src.main.check_conflicts", lambda *a: [])
+    monkeypatch.setattr("src.main.WorkbookProcessor", FakeProcessor)
+    monkeypatch.setattr("src.main.ProgressDialog", _make_fake_progress_dialog())
+
+    window._main_view._run_bar._run_button.click()
+
+    assert button_state_during_start == [False], "button must be disabled when processor.start() is called"
+    assert window._main_view._run_bar._run_button.isEnabled(), "button must be re-enabled after exec() returns"
+
+
+def test_previous_processor_is_waited_on_before_new_run(qtbot, monkeypatch):
+    window = MainWindow(config=_config_with_workbooks())
+    qtbot.addWidget(window)
+    window._main_view._run_bar._input_field.setText("/tmp/master.xlsx")
+    window._main_view._run_bar._suffix_field.setText("q1")
+
+    waited = []
+
+    class FakeProcessor:
+        def __init__(self):
+            self.workbook_started = MagicMock()
+            self.workbook_finished = MagicMock()
+            self.run_complete = MagicMock()
+            self.run_error = MagicMock()
+
+        def configure(self, *a, **kw):
+            pass
+
+        def start(self):
+            pass
+
+        def wait(self):
+            waited.append(True)
+
+    monkeypatch.setattr("src.main.check_conflicts", lambda *a: [])
+    monkeypatch.setattr("src.main.WorkbookProcessor", FakeProcessor)
+    monkeypatch.setattr("src.main.ProgressDialog", _make_fake_progress_dialog())
+
+    window._processor = FakeProcessor()
+    window._main_view._run_bar._run_button.click()
+
+    assert waited, "wait() must be called on the previous processor before starting a new run"

@@ -34,7 +34,7 @@ def check_conflicts(config: Config, selected_ids: list[str], suffix: str) -> lis
 class WorkbookProcessor(QThread):
     workbook_started = Signal(str)
     workbook_finished = Signal(RunResult)
-    run_complete = Signal(list)
+    run_complete = Signal(list, str)
     run_error = Signal(str)
 
     def configure(
@@ -54,62 +54,65 @@ class WorkbookProcessor(QThread):
         self._selected_ids = selected_ids
 
     def run(self) -> None:
-        config = self._config
-        suffix = self._suffix
-        input_filename = self._input_filename
-        selected_ids = self._selected_ids
-
-        master_path = Path(config.input_folder) / input_filename
-        if not master_path.exists():
-            self.run_error.emit(f"Master file not found: {master_path}")
-            return
-
         try:
-            master_wb = openpyxl.load_workbook(master_path, read_only=True, data_only=True)
+            config = self._config
+            suffix = self._suffix
+            input_filename = self._input_filename
+            selected_ids = self._selected_ids
+
+            master_path = Path(config.input_folder) / input_filename
+            if not master_path.exists():
+                self.run_error.emit(f"Master file not found: {master_path}")
+                return
+
+            try:
+                master_wb = openpyxl.load_workbook(master_path, read_only=True, data_only=True)
+            except Exception as exc:
+                self.run_error.emit(f"Could not open master file: {exc}")
+                return
+
+            wb_map = {wb.id: wb for wb in config.workbooks}
+            results: list[RunResult] = []
+
+            try:
+                for wb_id in selected_ids:
+                    self.workbook_started.emit(wb_id)
+                    t0 = time.monotonic()
+
+                    wb_cfg = wb_map.get(wb_id)
+                    if wb_cfg is None:
+                        r = RunResult(
+                            workbook_id=wb_id,
+                            filename=wb_id,
+                            status="error",
+                            message=f"Workbook '{wb_id}' not found in config",
+                            output_filename=None,
+                            rows_written=0,
+                            duration_ms=int((time.monotonic() - t0) * 1000),
+                        )
+                    else:
+                        r = self._process_single_workbook(wb_cfg, master_wb, suffix, t0)
+
+                    self.workbook_finished.emit(r)
+                    results.append(r)
+            finally:
+                master_wb.close()
+
+            try:
+                record = RunRecord(
+                    timestamp=datetime.now().isoformat(timespec="seconds"),
+                    input_filename=input_filename,
+                    suffix=suffix,
+                    results=results,
+                )
+                append_record(DEFAULT_LOG_PATH, record)
+            except Exception as exc:
+                self.run_error.emit(f"Could not write run log: {exc}")
+                return
+
+            self.run_complete.emit(results, suffix)
         except Exception as exc:
-            self.run_error.emit(f"Could not open master file: {exc}")
-            return
-
-        wb_map = {wb.id: wb for wb in config.workbooks}
-        results: list[RunResult] = []
-
-        try:
-            for wb_id in selected_ids:
-                self.workbook_started.emit(wb_id)
-                t0 = time.monotonic()
-
-                wb_cfg = wb_map.get(wb_id)
-                if wb_cfg is None:
-                    r = RunResult(
-                        workbook_id=wb_id,
-                        filename=wb_id,
-                        status="error",
-                        message=f"Workbook '{wb_id}' not found in config",
-                        output_filename=None,
-                        rows_written=0,
-                        duration_ms=int((time.monotonic() - t0) * 1000),
-                    )
-                else:
-                    r = self._process_single_workbook(wb_cfg, master_wb, suffix, t0)
-
-                self.workbook_finished.emit(r)
-                results.append(r)
-        finally:
-            master_wb.close()
-
-        try:
-            record = RunRecord(
-                timestamp=datetime.now().isoformat(timespec="seconds"),
-                input_filename=input_filename,
-                suffix=suffix,
-                results=results,
-            )
-            append_record(DEFAULT_LOG_PATH, record)
-        except Exception as exc:
-            self.run_error.emit(f"Could not write run log: {exc}")
-            return
-
-        self.run_complete.emit(results)
+            self.run_error.emit(f"Unexpected error during run: {exc}")
 
     def _process_single_workbook(
         self,

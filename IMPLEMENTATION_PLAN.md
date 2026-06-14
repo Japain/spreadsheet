@@ -263,16 +263,24 @@ Every phase follows this TDD loop: **write failing tests → implement to pass �
 - [x] Sidebar nav items switch the stacked widget page
 - [x] Config loaded at startup; passed to all views
 
-### Wiring (after Phase 9)
+### Wiring (after Phase 9) ✓
 
 - [x] **Test:** Run click with conflicts shows ConflictDialog before starting processor
 - [x] **Test:** Run click with no conflicts starts `WorkbookProcessor` directly
+- [x] **Test:** run button disabled while processor is active; re-enabled after `exec()` returns
+- [x] **Test:** previous processor is waited on before starting a new run
+- [x] **Test:** unexpected exception in `WorkbookProcessor.run()` emits `run_error` (no dialog soft-lock)
+- [x] **Test:** `run_complete` emits suffix alongside results (`Signal(list, str)`)
 - [x] Wire `WorkbookProcessor` signals to `MainView` and `ProgressDialog`:
   - [x] `workbook_started` → update ProgressDialog row to spinner
   - [x] `workbook_finished` → update ProgressDialog row to done/error
   - [x] `run_complete` → close ProgressDialog, show LogPanel
   - [x] `run_error` → close ProgressDialog, show error in UI
 - [x] On Run click: call `check_conflicts()`, show `ConflictDialog` if needed, then start `WorkbookProcessor`
+- [x] Reentrancy guard — run button disabled at start of `_start_run`; `try/finally` restores via `_update_run_button()` on all exit paths (cancel, complete, error)
+- [x] Thread lifecycle safety — `self._processor.wait()` called before reassigning `_processor`, ensuring OS thread is joined before GC
+- [x] Exception safety — outer `try/except Exception` in `WorkbookProcessor.run()` emits `run_error` for any unhandled exception, preventing permanent dialog soft-lock
+- [x] `run_complete` signal broadened to `Signal(list, str)` (results + suffix) — `show_results` wired directly without closure
 - [ ] **Revisit config error UX** — skeleton shows `QMessageBox.critical` + exits on corrupt `config.json`; consider backup-and-reset strategy for better UX
 
 ---
