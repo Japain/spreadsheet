@@ -49,6 +49,22 @@ def test_empty_state_when_no_log(qtbot, tmp_path):
     assert empty_lbl.isVisible()
 
 
+def test_cap_at_100_most_recent_records(qtbot, tmp_path):
+    log_path = tmp_path / "runs.log"
+    for i in range(105):
+        ts = f"2026-01-01T00:{i // 60:02d}:{i % 60:02d}"
+        append_record(log_path, _make_record(ts, "Q1", ["success"]))
+
+    view = HistoryView(log_path=log_path)
+    qtbot.addWidget(view)
+    view.show()
+
+    rows = view.findChildren(QLabel, "history_row_timestamp")
+    assert len(rows) == 100
+    assert rows[0].text() == "2026-01-01T00:01:44"   # i=104, most recent
+    assert rows[99].text() == "2026-01-01T00:00:05"  # i=5, oldest visible
+
+
 def test_reload_on_reshown(qtbot, tmp_path):
     log_path = tmp_path / "runs.log"
     older = _make_record("2026-01-01T10:00:00", "Q4", ["success"])

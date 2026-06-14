@@ -167,11 +167,11 @@ class ProgressDialog(QDialog):
         self._timer.start()
 
     def on_workbook_finished(self, result: RunResult) -> None:
-        self._timer.stop()
-        self._current_row = None
         row = self._rows.get(result.workbook_id)
         if row is None:
             return
+        self._timer.stop()
+        self._current_row = None
         row.set_done(result)
         self._progress_bar.setValue(self._progress_bar.value() + 1)
 
