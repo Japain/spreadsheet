@@ -221,24 +221,26 @@ Every phase follows this TDD loop: **write failing tests → implement to pass �
 
 ---
 
-## Phase 9 — Dialogs (`src/ui/dialogs.py`)
+## Phase 9 — Dialogs (`src/ui/dialogs.py`) ✓
+
+**Design spec:** `docs/superpowers/specs/2026-06-13-dialogs-design.md`
 
 **Test file:** `tests/ui/test_dialogs.py`
 
 ### ConflictDialog
-- [ ] **Test:** dialog lists each conflicting filename
-- [ ] **Test:** "Cancel" returns `QDialog.Rejected`; "Overwrite" returns `QDialog.Accepted`
-- [ ] Lists all conflicting output filenames
-- [ ] "Cancel & change suffix" button (closes dialog, no action)
-- [ ] "Overwrite and continue" button (signals caller to proceed)
+- [x] **Test:** dialog lists each conflicting filename
+- [x] **Test:** "Cancel" returns `QDialog.Rejected`; "Overwrite" returns `QDialog.Accepted`
+- [x] Lists all conflicting output filenames
+- [x] "Cancel & change suffix" button (closes dialog, no action)
+- [x] "Overwrite and continue" button (signals caller to proceed)
 
 ### ProgressDialog
-- [ ] **Test:** row transitions from pending → running → done when signals fire in sequence
-- [ ] **Test:** dialog closes when `run_complete` is emitted
-- [ ] Non-dismissible (no close button, ESC ignored) during run
-- [ ] Per-workbook rows: spinner (running) / check (done) / dashed circle (pending), filename, row count or status label
-- [ ] Overall progress bar
-- [ ] Closes automatically when `run_complete` fires
+- [x] **Test:** row transitions from pending → running → done when signals fire in sequence
+- [x] **Test:** dialog closes when `run_complete` is emitted
+- [x] Non-dismissible (no close button, ESC ignored) during run
+- [x] Per-workbook rows: spinner (running) / check (done) / dashed circle (pending), filename, row count or status label
+- [x] Overall progress bar
+- [x] Closes automatically when `run_complete` fires
 
 ---
 
