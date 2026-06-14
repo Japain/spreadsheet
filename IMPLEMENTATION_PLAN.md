@@ -277,6 +277,35 @@ Every phase follows this TDD loop: **write failing tests → implement to pass �
 
 ---
 
+## Phase 10.5 — Visual QA
+
+**Script:** `tests/ui/test_visual_qa.py`
+**Reference images:** `docs/qa/reference/`
+**Actual images:** `docs/qa/actual/`
+
+Run with: `pytest tests/ui/test_visual_qa.py -s`
+
+Not a pass/fail test — a screenshot capture script run manually as part of QA. Each test function instantiates a view with representative data, calls `widget.grab()`, and saves a PNG to `docs/qa/actual/`.
+
+### Capture
+
+- [ ] Main View — empty state (no workbooks in config)
+- [ ] Main View — populated state (workbooks listed, run button active)
+- [ ] Settings View — empty state
+- [ ] Settings View — populated (workbooks with tab mappings)
+- [ ] History View — empty state
+- [ ] History View — populated (several run records)
+- [ ] ConflictDialog — conflict list shown
+- [ ] ProgressDialog — mid-run with mixed statuses
+
+### Compare & promote
+
+- [ ] For each actual screenshot, compare visually against reference in `docs/qa/reference/` (or the HTML prototype in `docs/design/` if no reference exists yet)
+- [ ] Fix any layout, color, or spacing discrepancies found
+- [ ] Promote approved actuals without existing references to `docs/qa/reference/`
+
+---
+
 ## Phase 11 — Packaging (`build/quarterly.spec`)
 
 - [ ] Write PyInstaller spec file (`--onedir` mode)
@@ -295,6 +324,7 @@ Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5
 → Phase 10 skeleton (window + nav only)
 → Phase 6 → Phase 7 → Phase 8 → Phase 9
 → Phase 10 wiring
+→ Phase 10.5 (Visual QA)
 → Phase 11
 ```
 
