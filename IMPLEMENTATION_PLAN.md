@@ -263,17 +263,54 @@ Every phase follows this TDD loop: **write failing tests → implement to pass �
 - [x] Sidebar nav items switch the stacked widget page
 - [x] Config loaded at startup; passed to all views
 
-### Wiring (after Phase 9)
+### Wiring (after Phase 9) ✓
 
-- [ ] **Test:** Run click with conflicts shows ConflictDialog before starting processor
-- [ ] **Test:** Run click with no conflicts starts `WorkbookProcessor` directly
-- [ ] Wire `WorkbookProcessor` signals to `MainView` and `ProgressDialog`:
-  - [ ] `workbook_started` → update ProgressDialog row to spinner
-  - [ ] `workbook_finished` → update ProgressDialog row to done/error
-  - [ ] `run_complete` → close ProgressDialog, show LogPanel
-  - [ ] `run_error` → close ProgressDialog, show error in UI
-- [ ] On Run click: call `check_conflicts()`, show `ConflictDialog` if needed, then start `WorkbookProcessor`
+- [x] **Test:** Run click with conflicts shows ConflictDialog before starting processor
+- [x] **Test:** Run click with no conflicts starts `WorkbookProcessor` directly
+- [x] **Test:** run button disabled while processor is active; re-enabled after `exec()` returns
+- [x] **Test:** previous processor is waited on before starting a new run
+- [x] **Test:** unexpected exception in `WorkbookProcessor.run()` emits `run_error` (no dialog soft-lock)
+- [x] **Test:** `run_complete` emits suffix alongside results (`Signal(list, str)`)
+- [x] Wire `WorkbookProcessor` signals to `MainView` and `ProgressDialog`:
+  - [x] `workbook_started` → update ProgressDialog row to spinner
+  - [x] `workbook_finished` → update ProgressDialog row to done/error
+  - [x] `run_complete` → close ProgressDialog, show LogPanel
+  - [x] `run_error` → close ProgressDialog, show error in UI
+- [x] On Run click: call `check_conflicts()`, show `ConflictDialog` if needed, then start `WorkbookProcessor`
+- [x] Reentrancy guard — run button disabled at start of `_start_run`; `try/finally` restores via `_update_run_button()` on all exit paths (cancel, complete, error)
+- [x] Thread lifecycle safety — `self._processor.wait()` called before reassigning `_processor`, ensuring OS thread is joined before GC
+- [x] Exception safety — outer `try/except Exception` in `WorkbookProcessor.run()` emits `run_error` for any unhandled exception, preventing permanent dialog soft-lock
+- [x] `run_complete` signal broadened to `Signal(list, str)` (results + suffix) — `show_results` wired directly without closure
 - [ ] **Revisit config error UX** — skeleton shows `QMessageBox.critical` + exits on corrupt `config.json`; consider backup-and-reset strategy for better UX
+
+---
+
+## Phase 10.5 — Visual QA
+
+**Script:** `tests/ui/test_visual_qa.py`
+**Reference images:** `docs/qa/reference/`
+**Actual images:** `docs/qa/actual/`
+
+Run with: `pytest tests/ui/test_visual_qa.py -s`
+
+Not a pass/fail test — a screenshot capture script run manually as part of QA. Each test function instantiates a view with representative data, calls `widget.grab()`, and saves a PNG to `docs/qa/actual/`.
+
+### Capture
+
+- [ ] Main View — empty state (no workbooks in config)
+- [ ] Main View — populated state (workbooks listed, run button active)
+- [ ] Settings View — empty state
+- [ ] Settings View — populated (workbooks with tab mappings)
+- [ ] History View — empty state
+- [ ] History View — populated (several run records)
+- [ ] ConflictDialog — conflict list shown
+- [ ] ProgressDialog — mid-run with mixed statuses
+
+### Compare & promote
+
+- [ ] For each actual screenshot, compare visually against reference in `docs/qa/reference/` (or the HTML prototype in `docs/design/` if no reference exists yet)
+- [ ] Fix any layout, color, or spacing discrepancies found
+- [ ] Promote approved actuals without existing references to `docs/qa/reference/`
 
 ---
 
@@ -295,6 +332,7 @@ Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5
 → Phase 10 skeleton (window + nav only)
 → Phase 6 → Phase 7 → Phase 8 → Phase 9
 → Phase 10 wiring
+→ Phase 10.5 (Visual QA)
 → Phase 11
 ```
 

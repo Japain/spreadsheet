@@ -70,6 +70,16 @@ sys.exit(app.exec())
 | Header checkbox unchecks all | All rows dim, Run button disables |
 | Header checkbox checks all | All rows restore opacity |
 
+**Run flow checklist** (requires real `.xlsx` files in the configured folder)
+
+| Scenario | Expected |
+|---|---|
+| Click Run with no conflicts | ProgressDialog opens; rows animate through pending → running → done |
+| Click Run when output files already exist | ConflictDialog lists filenames; Cancel aborts; Overwrite proceeds |
+| Run completes successfully | ProgressDialog closes; LogPanel appears with summary pills |
+| Run encounters an error (e.g. missing master file) | ProgressDialog closes; `QMessageBox` shows error text |
+| Click Run button while run is in progress | Button is disabled — second click is ignored |
+
 **Empty state checklist**
 
 ```bash
@@ -102,32 +112,39 @@ sys.exit(app.exec())
 | 4 | Styling (`styles.py`) | ✅ Done |
 | 5 | Shared widgets (`widgets.py`) | ✅ Done |
 | 6 | Main view — `WorkbookTable`, `RunBar`, `LogPanel` | ✅ Done |
-| 10 | `MainWindow` — shell done; signal wiring after Phase 9 | 🔄 In Progress |
-| 7 | Settings view | 🔲 Pending |
-| 8 | History view | 🔲 Pending |
-| 9 | Dialogs (`ConflictDialog`, `ProgressDialog`) | 🔲 Pending |
+| 7 | Settings view | ✅ Done |
+| 8 | History view | ✅ Done |
+| 9 | Dialogs (`ConflictDialog`, `ProgressDialog`) | ✅ Done |
+| 10 | `MainWindow` — skeleton + full run-flow wiring | ✅ Done |
+| 10.5 | Visual QA — screenshot capture & comparison | 🔲 Pending |
 | 11 | PyInstaller packaging | 🔲 Pending |
 
 ## Project Structure
 
 ```
 src/
-  config.py         # Config, TabMapping, Workbook dataclasses + JSON persistence
-  log.py            # RunRecord, RunResult + append/read run log
-  processor.py      # WorkbookProcessor (QThread) — Excel copy logic
-  main.py           # MainWindow entry point
+  config.py          # Config, TabMapping, Workbook dataclasses + JSON persistence
+  log.py             # RunRecord, RunResult + append/read run log
+  processor.py       # WorkbookProcessor (QThread) + check_conflicts — Excel copy logic
+  validation.py      # Shared suffix regex
+  main.py            # MainWindow — sidebar, nav, run-flow wiring
   ui/
-    styles.py       # Global QSS stylesheet
-    widgets.py      # StatusPill, TabChip, HeaderCheckBox
-    main_view.py    # Run screen — RunBar, WorkbookTable, LogPanel, empty state
-    settings_view.py# Settings view (stub — Phase 7)
-    history_view.py # History view (stub — Phase 8)
+    styles.py        # Global QSS stylesheet
+    widgets.py       # StatusPill, TabChip, HeaderCheckBox
+    main_view.py     # Run screen — RunBar, WorkbookTable, LogPanel, empty state
+    settings_view.py # Settings view — workbook list + tab mapping editor
+    history_view.py  # History view — run log reader
+    dialogs.py       # ConflictDialog, ProgressDialog
 tests/
   test_config.py
   test_log.py
   test_processor.py
   ui/
     test_main_window.py
+    test_main_view.py
+    test_settings_view.py
+    test_history_view.py
+    test_dialogs.py
     test_styles.py
     test_widgets.py
 ```

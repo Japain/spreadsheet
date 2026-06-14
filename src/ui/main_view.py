@@ -284,6 +284,7 @@ class _EmptyState(QWidget):
 
 class MainView(QWidget):
     navigate_to_settings = Signal()
+    run_requested = Signal()
 
     def __init__(self, config: Config, parent: QWidget | None = None):
         super().__init__(parent)
@@ -294,6 +295,7 @@ class MainView(QWidget):
         self._empty_state = _EmptyState()
 
         self._empty_state.navigate_to_settings.connect(self.navigate_to_settings)
+        self._run_bar._run_button.clicked.connect(self.run_requested)
 
         self._log_panel.setVisible(False)
 

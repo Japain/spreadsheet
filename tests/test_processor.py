@@ -54,7 +54,7 @@ class _Cap:
         self.errors: list[str] = []
         p.workbook_started.connect(self.started.append)
         p.workbook_finished.connect(self.finished.append)
-        p.run_complete.connect(self.complete.append)
+        p.run_complete.connect(lambda results, _suffix: self.complete.append(results))
         p.run_error.connect(self.errors.append)
 
 
@@ -474,3 +474,46 @@ def test_bad_dimension_metadata_copies_all_columns_and_clears_stale_data(tmp_pat
     assert ws.cell(3, 1).value is None      # stale row cleared
     assert ws.cell(3, 4).value == "keep3"   # outside paste zone — preserved
     out.close()
+
+
+def test_unexpected_exception_in_processor_emits_run_error(tmp_path, qapp, monkeypatch):
+    master_dir = tmp_path / "master"
+    master_dir.mkdir()
+    out_dir = tmp_path / "out"
+    out_dir.mkdir()
+    _wb(master_dir / "master.xlsx", {"Sheet1": [["A"]]})
+    _wb(out_dir / "report.xlsx", {"Sheet1": []})
+
+    config = _cfg(str(master_dir), [_workbook("wb1", "report.xlsx", str(out_dir), [("Sheet1", "Sheet1")])])
+    p = WorkbookProcessor()
+    cap = _Cap(p)
+
+    def _raise(*args, **kwargs):
+        raise RuntimeError("unexpected boom")
+
+    monkeypatch.setattr(WorkbookProcessor, "_process_single_workbook", _raise)
+    p.configure(config, "master.xlsx", "Q1", ["wb1"])
+    p.run()
+
+    assert cap.errors, "run_error must be emitted when an unexpected exception occurs"
+    assert "unexpected boom" in cap.errors[0]
+    assert not cap.complete, "run_complete must not be emitted after an unexpected exception"
+
+
+def test_run_complete_includes_suffix(tmp_path, qapp):
+    master_dir = tmp_path / "master"
+    master_dir.mkdir()
+    out_dir = tmp_path / "out"
+    out_dir.mkdir()
+    _wb(master_dir / "master.xlsx", {"Sheet1": [["A"]]})
+    _wb(out_dir / "report.xlsx", {"Sheet1": []})
+
+    config = _cfg(str(master_dir), [_workbook("wb1", "report.xlsx", str(out_dir), [("Sheet1", "Sheet1")])])
+    p = WorkbookProcessor()
+    emitted_suffixes = []
+    p.run_complete.connect(lambda results, suffix: emitted_suffixes.append(suffix))
+
+    p.configure(config, "master.xlsx", "Q2", ["wb1"])
+    p.run()
+
+    assert emitted_suffixes == ["Q2"]
