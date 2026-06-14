@@ -265,14 +265,14 @@ Every phase follows this TDD loop: **write failing tests → implement to pass �
 
 ### Wiring (after Phase 9)
 
-- [ ] **Test:** Run click with conflicts shows ConflictDialog before starting processor
-- [ ] **Test:** Run click with no conflicts starts `WorkbookProcessor` directly
-- [ ] Wire `WorkbookProcessor` signals to `MainView` and `ProgressDialog`:
-  - [ ] `workbook_started` → update ProgressDialog row to spinner
-  - [ ] `workbook_finished` → update ProgressDialog row to done/error
-  - [ ] `run_complete` → close ProgressDialog, show LogPanel
-  - [ ] `run_error` → close ProgressDialog, show error in UI
-- [ ] On Run click: call `check_conflicts()`, show `ConflictDialog` if needed, then start `WorkbookProcessor`
+- [x] **Test:** Run click with conflicts shows ConflictDialog before starting processor
+- [x] **Test:** Run click with no conflicts starts `WorkbookProcessor` directly
+- [x] Wire `WorkbookProcessor` signals to `MainView` and `ProgressDialog`:
+  - [x] `workbook_started` → update ProgressDialog row to spinner
+  - [x] `workbook_finished` → update ProgressDialog row to done/error
+  - [x] `run_complete` → close ProgressDialog, show LogPanel
+  - [x] `run_error` → close ProgressDialog, show error in UI
+- [x] On Run click: call `check_conflicts()`, show `ConflictDialog` if needed, then start `WorkbookProcessor`
 - [ ] **Revisit config error UX** — skeleton shows `QMessageBox.critical` + exits on corrupt `config.json`; consider backup-and-reset strategy for better UX
 
 ---

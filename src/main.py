@@ -4,6 +4,7 @@ import sys
 
 from PySide6.QtWidgets import (
     QApplication,
+    QDialog,
     QHBoxLayout,
     QLabel,
     QMainWindow,
@@ -16,6 +17,8 @@ from PySide6.QtWidgets import (
 )
 
 from src.config import Config, DEFAULT_CONFIG_PATH
+from src.processor import WorkbookProcessor, check_conflicts
+from src.ui.dialogs import ConflictDialog, ProgressDialog
 from src.ui.history_view import HistoryView
 from src.ui.main_view import MainView
 from src.ui.settings_view import SettingsView
@@ -27,6 +30,8 @@ class MainWindow(QMainWindow):
         super().__init__()
         if config is None:
             config = Config.load(DEFAULT_CONFIG_PATH)
+
+        self._config = config
 
         self.setWindowTitle("Quarterly — Workbook Updater")
         self.setFixedSize(1280, 820)
@@ -42,6 +47,7 @@ class MainWindow(QMainWindow):
         self._stack.addWidget(self._history_view)   # index 2
 
         self._main_view.navigate_to_settings.connect(lambda: self._switch_page(1))
+        self._main_view.run_requested.connect(self._start_run)
 
         sidebar = self._setup_sidebar()
 
@@ -120,6 +126,44 @@ class MainWindow(QMainWindow):
 
         self._update_nav_active(0)
         return sidebar
+
+    def _start_run(self) -> None:
+        input_file = self._main_view._run_bar._input_field.text()
+        suffix = self._main_view._run_bar._suffix_field.text()
+        selected_ids = self._main_view._workbook_table.get_selected_ids()
+
+        conflicts = check_conflicts(self._config, selected_ids, suffix)
+        if conflicts:
+            dlg = ConflictDialog(conflicts, self)
+            if dlg.exec() != QDialog.DialogCode.Accepted:
+                return
+
+        workbooks_for_dialog = [
+            (wb.id, wb.filename)
+            for wb in self._config.workbooks
+            if wb.id in selected_ids
+        ]
+        progress_dlg = ProgressDialog(workbooks_for_dialog, self)
+
+        self._processor = WorkbookProcessor()
+        self._processor.configure(self._config, input_file, suffix, selected_ids)
+
+        self._processor.workbook_started.connect(progress_dlg.on_workbook_started)
+        self._processor.workbook_finished.connect(progress_dlg.on_workbook_finished)
+        self._processor.run_complete.connect(lambda _: progress_dlg.on_run_complete())
+        self._processor.run_complete.connect(
+            lambda results: self._main_view.show_results(results, suffix)
+        )
+        self._processor.run_error.connect(
+            lambda msg: self._handle_run_error(progress_dlg, msg)
+        )
+
+        self._processor.start()
+        progress_dlg.exec()
+
+    def _handle_run_error(self, progress_dlg: ProgressDialog, message: str) -> None:
+        progress_dlg.reject()
+        QMessageBox.critical(self, "Run Error", message)
 
     def _switch_page(self, index: int) -> None:
         self._stack.setCurrentIndex(index)
