@@ -129,9 +129,9 @@ class MainWindow(QMainWindow):
 
     def _start_run(self) -> None:
         try:
-            if hasattr(self, '_processor'):
-                self._processor.wait()
             self._main_view._run_bar._run_button.setEnabled(False)
+            if (prev := getattr(self, '_processor', None)) is not None:
+                prev.wait()
 
             input_file = self._main_view._run_bar._input_field.text()
             suffix = self._main_view._run_bar._suffix_field.text()
