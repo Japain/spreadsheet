@@ -102,6 +102,17 @@ sys.exit(app.exec())
 | Click "Add target workbook" | Navigates to Configure (Settings) view |
 | Nav items | Run / Configure / Run History all switch views |
 
+## Visual QA
+
+Capture screenshots of all views with representative data:
+
+```bash
+source venv/bin/activate
+pytest tests/ui/test_visual_qa.py -s
+```
+
+Output PNGs are written to `docs/qa/actual/`. Compare them against the approved references in `docs/qa/reference/`. Once approved, copy actuals to `reference/` to promote them.
+
 ## Implementation Status
 
 | Phase | Description | Status |
@@ -116,7 +127,7 @@ sys.exit(app.exec())
 | 8 | History view | ✅ Done |
 | 9 | Dialogs (`ConflictDialog`, `ProgressDialog`) | ✅ Done |
 | 10 | `MainWindow` — skeleton + full run-flow wiring | ✅ Done |
-| 10.5 | Visual QA — screenshot capture & comparison | 🔲 Pending |
+| 10.5 | Visual QA — screenshot capture & comparison | ✅ Done |
 | 11 | PyInstaller packaging | 🔲 Pending |
 
 ## Project Structure
@@ -147,4 +158,9 @@ tests/
     test_dialogs.py
     test_styles.py
     test_widgets.py
+    test_visual_qa.py  # screenshot capture — run with pytest -s; not pass/fail
+docs/
+  qa/
+    actual/            # captured screenshots (gitignored)
+    reference/         # approved reference screenshots (gitignored)
 ```

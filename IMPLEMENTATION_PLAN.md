@@ -297,20 +297,20 @@ Not a pass/fail test — a screenshot capture script run manually as part of QA.
 
 ### Capture
 
-- [ ] Main View — empty state (no workbooks in config)
-- [ ] Main View — populated state (workbooks listed, run button active)
-- [ ] Settings View — empty state
-- [ ] Settings View — populated (workbooks with tab mappings)
-- [ ] History View — empty state
-- [ ] History View — populated (several run records)
-- [ ] ConflictDialog — conflict list shown
-- [ ] ProgressDialog — mid-run with mixed statuses
+- [x] Main View — empty state (no workbooks in config)
+- [x] Main View — populated state (workbooks listed, run button active)
+- [x] Settings View — empty state
+- [x] Settings View — populated (workbooks with tab mappings)
+- [x] History View — empty state
+- [x] History View — populated (several run records)
+- [x] ConflictDialog — conflict list shown
+- [x] ProgressDialog — mid-run with mixed statuses
 
 ### Compare & promote
 
-- [ ] For each actual screenshot, compare visually against reference in `docs/qa/reference/` (or the HTML prototype in `docs/design/` if no reference exists yet)
-- [ ] Fix any layout, color, or spacing discrepancies found
-- [ ] Promote approved actuals without existing references to `docs/qa/reference/`
+- [x] For each actual screenshot, compare visually against reference in `docs/qa/reference/` (or the HTML prototype in `docs/design/` if no reference exists yet)
+- [x] Fix any layout, color, or spacing discrepancies found (ProgressDialog: added `setMinimumWidth(480)` and disabled horizontal scrollbar)
+- [x] Promote approved actuals without existing references to `docs/qa/reference/`
 
 ---
 

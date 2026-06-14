@@ -112,6 +112,7 @@ class ProgressDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Running…")
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowCloseButtonHint)
+        self.setMinimumWidth(480)
 
         self._rows: dict[str, _ProgressRow] = {}
         self._frame_index = 0
@@ -125,6 +126,7 @@ class ProgressDialog(QDialog):
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QScrollArea.Shape.NoFrame)
         scroll.setMaximumHeight(300)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
         rows_widget = QWidget()
         rows_layout = QVBoxLayout(rows_widget)
