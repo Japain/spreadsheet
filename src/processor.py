@@ -112,7 +112,7 @@ class WorkbookProcessor(QThread):
 
             self.run_complete.emit(results, suffix)
         except Exception as exc:
-            self.run_error.emit(f"Unexpected error during run: {exc}")
+            self.run_error.emit(f"Unexpected error during run: {type(exc).__name__}: {exc}")
 
     def _process_single_workbook(
         self,
