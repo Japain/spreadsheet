@@ -76,6 +76,7 @@ class _ProgressRow(QWidget):
         self._status = QLabel("Waiting")
         self._status.setObjectName("secondary")
         self._status.setStyleSheet("color: #6b7080;")
+        self._status.setWordWrap(True)
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 2, 0, 2)

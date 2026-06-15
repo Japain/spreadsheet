@@ -111,7 +111,7 @@ source venv/bin/activate
 pytest tests/ui/test_visual_qa.py -s
 ```
 
-Output PNGs are written to `docs/qa/actual/`. Compare them against the approved references in `docs/qa/reference/`. Once approved, copy actuals to `reference/` to promote them.
+Output PNGs are written to `docs/qa/actual/`. Both directories are gitignored — references are local-only, not version-controlled. To establish a baseline, run the script once and copy the actuals to `docs/qa/reference/`. On subsequent runs, diff the new actuals against those local references to spot regressions.
 
 ## Implementation Status
 

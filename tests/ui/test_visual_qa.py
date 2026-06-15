@@ -21,13 +21,18 @@ ACTUAL = Path("docs/qa/actual")
 
 @pytest.fixture(autouse=True)
 def _stylesheet(qapp):
+    prev = qapp.styleSheet()
     qapp.setStyleSheet(STYLESHEET)
+    yield
+    qapp.setStyleSheet(prev)
 
 
 def _save(widget, name: str) -> None:
     QApplication.processEvents()
+    ACTUAL.mkdir(parents=True, exist_ok=True)
     path = ACTUAL / f"{name}.png"
-    widget.grab().save(str(path))
+    if not widget.grab().save(str(path)):
+        raise RuntimeError(f"Failed to save screenshot: {path}")
     print(f"\n  → {path}")
 
 
