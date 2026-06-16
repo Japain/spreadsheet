@@ -30,40 +30,55 @@ class WorkbookRow(QWidget):
         self._checkbox = QCheckBox()
         self._checkbox.setChecked(True)
 
-        name_label = QLabel(workbook.filename)
-        name_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        self._name_label = QLabel(workbook.filename)
+        self._name_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
         input_widget = QWidget()
-        input_layout = QHBoxLayout(input_widget)
-        input_layout.setContentsMargins(0, 0, 0, 0)
-        input_layout.setSpacing(4)
+        self._input_layout = QHBoxLayout(input_widget)
+        self._input_layout.setContentsMargins(0, 0, 0, 0)
+        self._input_layout.setSpacing(4)
         for m in workbook.mappings:
-            input_layout.addWidget(TabChip(m.input))
-        input_layout.addStretch()
+            self._input_layout.addWidget(TabChip(m.input))
+        self._input_layout.addStretch()
 
         target_widget = QWidget()
-        target_layout = QHBoxLayout(target_widget)
-        target_layout.setContentsMargins(0, 0, 0, 0)
-        target_layout.setSpacing(4)
+        self._target_layout = QHBoxLayout(target_widget)
+        self._target_layout.setContentsMargins(0, 0, 0, 0)
+        self._target_layout.setSpacing(4)
         for m in workbook.mappings:
-            target_layout.addWidget(TabChip(m.target))
-        target_layout.addStretch()
+            self._target_layout.addWidget(TabChip(m.target))
+        self._target_layout.addStretch()
 
-        folder_label = QLabel(workbook.folder)
-        folder_label.setObjectName("monospace")
+        self._folder_label = QLabel(workbook.folder)
+        self._folder_label.setObjectName("monospace")
 
         row_layout = QHBoxLayout(self)
         row_layout.setContentsMargins(8, 4, 8, 4)
         row_layout.addWidget(self._checkbox)
-        row_layout.addWidget(name_label, 2)
+        row_layout.addWidget(self._name_label, 2)
         row_layout.addWidget(input_widget, 1)
         row_layout.addWidget(target_widget, 1)
-        row_layout.addWidget(folder_label, 2)
+        row_layout.addWidget(self._folder_label, 2)
 
         self._opacity = QGraphicsOpacityEffect(self)
         self.setGraphicsEffect(self._opacity)
         self._checkbox.stateChanged.connect(self._update_opacity)
         self._update_opacity()
+
+    def refresh(self, wb: "Workbook") -> None:
+        self._name_label.setText(wb.filename)
+        self._folder_label.setText(wb.folder)
+        self._rebuild_chips(self._input_layout, [m.input for m in wb.mappings])
+        self._rebuild_chips(self._target_layout, [m.target for m in wb.mappings])
+
+    def _rebuild_chips(self, layout: "QHBoxLayout", labels: list[str]) -> None:
+        while layout.count():
+            item = layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+        for label in labels:
+            layout.addWidget(TabChip(label))
+        layout.addStretch()
 
     def _update_opacity(self) -> None:
         self._opacity.setOpacity(1.0 if self._checkbox.isChecked() else 0.4)
@@ -140,6 +155,12 @@ class WorkbookTable(QWidget):
                 row.setParent(None)
                 row.deleteLater()
                 self.selection_changed.emit()
+                return
+
+    def refresh_row(self, wb: "Workbook") -> None:
+        for row in self._rows:
+            if row.workbook_id == wb.id:
+                row.refresh(wb)
                 return
 
 
@@ -278,8 +299,6 @@ class _EmptyState(QWidget):
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
         self.setObjectName("card")
-        icon = QLabel("📂")
-        icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         heading = QLabel("No workbooks configured")
         heading.setAlignment(Qt.AlignmentFlag.AlignCenter)
         heading.setStyleSheet("font-size: 16px; font-weight: bold;")
@@ -293,7 +312,6 @@ class _EmptyState(QWidget):
 
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(icon)
         layout.addWidget(heading)
         layout.addWidget(description)
         layout.addWidget(self._add_btn, 0, Qt.AlignmentFlag.AlignCenter)
@@ -350,6 +368,9 @@ class MainView(QWidget):
             self._run_bar.setVisible(False)
             self._workbook_table.setVisible(False)
         self._update_run_button()
+
+    def update_workbook(self, wb: "Workbook") -> None:
+        self._workbook_table.refresh_row(wb)
 
     def _update_run_button(self) -> None:
         has_input = bool(self._run_bar._input_field.text())

@@ -50,6 +50,7 @@ class MainWindow(QMainWindow):
         self._main_view.run_requested.connect(self._start_run)
         self._settings_view.workbook_added.connect(self._main_view.add_workbook)
         self._settings_view.workbook_removed.connect(self._main_view.remove_workbook)
+        self._settings_view.workbook_updated.connect(self._main_view.update_workbook)
 
         sidebar = self._setup_sidebar()
 

@@ -3,9 +3,11 @@ from unittest.mock import patch
 
 from PySide6.QtWidgets import QApplication, QFileDialog
 
+from PySide6.QtWidgets import QLabel
+
 from src.config import Config, Workbook, TabMapping
 from src.log import RunResult
-from src.ui.main_view import MainView
+from src.ui.main_view import MainView, WorkbookRow
 
 
 @pytest.fixture
@@ -269,3 +271,53 @@ def test_remove_last_workbook_shows_empty_state(qtbot):
     view.remove_workbook("wb1")
     assert not view._empty_state.isHidden()
     assert view._run_bar.isHidden()
+
+
+# ── Empty state rendering ─────────────────────────────────────────────────────
+
+def test_empty_state_has_no_emoji_icon(qtbot, empty_config):
+    view = MainView(empty_config)
+    qtbot.addWidget(view)
+    emoji_labels = [
+        w for w in view._empty_state.findChildren(QLabel)
+        if w.text() == "📂"
+    ]
+    assert not emoji_labels
+
+
+# ── WorkbookRow refresh ───────────────────────────────────────────────────────
+
+def test_workbook_row_refresh_updates_filename(qtbot):
+    wb = Workbook(id="wb1", filename="Old.xlsx", folder="/old", mappings=[TabMapping("A", "B")])
+    row = WorkbookRow(wb)
+    qtbot.addWidget(row)
+    updated_wb = Workbook(id="wb1", filename="New.xlsx", folder="/old", mappings=[TabMapping("A", "B")])
+    row.refresh(updated_wb)
+    assert row._name_label.text() == "New.xlsx"
+
+
+def test_workbook_row_refresh_updates_folder(qtbot):
+    wb = Workbook(id="wb1", filename="R.xlsx", folder="/old", mappings=[TabMapping("A", "B")])
+    row = WorkbookRow(wb)
+    qtbot.addWidget(row)
+    updated_wb = Workbook(id="wb1", filename="R.xlsx", folder="/new/path", mappings=[TabMapping("A", "B")])
+    row.refresh(updated_wb)
+    assert row._folder_label.text() == "/new/path"
+
+
+def test_workbook_row_refresh_updates_tab_chip_count(qtbot):
+    wb = Workbook(id="wb1", filename="R.xlsx", folder="/f", mappings=[TabMapping("A", "B")])
+    row = WorkbookRow(wb)
+    qtbot.addWidget(row)
+    updated_wb = Workbook(id="wb1", filename="R.xlsx", folder="/f", mappings=[TabMapping("A", "B"), TabMapping("C", "D")])
+    row.refresh(updated_wb)
+    # two input chips + stretch = 3 items in input_layout
+    assert row._input_layout.count() == 3
+
+
+def test_update_workbook_refreshes_row_in_table(qtbot, two_workbooks):
+    view = MainView(two_workbooks)
+    qtbot.addWidget(view)
+    updated = Workbook(id="wb1", filename="Renamed.xlsx", folder="/new", mappings=[TabMapping("X", "Y")])
+    view.update_workbook(updated)
+    assert view._workbook_table._rows[0]._name_label.text() == "Renamed.xlsx"

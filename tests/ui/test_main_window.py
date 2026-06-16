@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from PySide6.QtWidgets import QDialog, QPushButton
+from PySide6.QtWidgets import QDialog, QLineEdit, QPushButton
 
 from src.config import Config, TabMapping, Workbook
 from src.main import MainWindow
@@ -231,3 +231,14 @@ def test_workbook_removed_in_settings_disappears_from_run_view(qtbot):
     remove_btn = window._settings_view.findChild(QPushButton, "remove_workbook_btn")
     remove_btn.click()
     assert len(window._main_view._workbook_table._rows) == 0
+
+
+def test_workbook_renamed_in_settings_updates_run_view_row(qtbot):
+    window = MainWindow(config=_config_with_workbooks())
+    qtbot.addWidget(window)
+    window._nav_configure.click()
+    field = window._settings_view.findChild(QLineEdit, "filename_field")
+    field.clear()
+    qtbot.keyClicks(field, "renamed.xlsx")
+    row = window._main_view._workbook_table._rows[0]
+    assert row._name_label.text() == "renamed.xlsx"

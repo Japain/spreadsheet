@@ -24,6 +24,7 @@ from src.ui._workbook_list_item import _WorkbookListItem
 class SettingsView(QWidget):
     workbook_added = Signal(object)
     workbook_removed = Signal(str)
+    workbook_updated = Signal(object)
 
     def __init__(self, config: Config, config_path: Path, parent: QWidget | None = None):
         super().__init__(parent)
@@ -186,6 +187,7 @@ class SettingsView(QWidget):
                 self._list_items[self._selected_index].refresh(
                     self._config.workbooks[self._selected_index]
                 )
+                self.workbook_updated.emit(self._config.workbooks[self._selected_index])
 
         self._detail_pane = _WorkbookDetailPane(workbook, save)
         self._detail_pane.workbook_removed.connect(self._on_remove_selected)

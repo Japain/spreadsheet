@@ -1,5 +1,6 @@
 import pytest
 from PySide6.QtWidgets import QLabel, QLineEdit, QPushButton, QWidget
+from pytestqt.qtbot import QtBot
 
 from src.config import Config, TabMapping, Workbook
 from src.ui.settings_view import SettingsView
@@ -116,3 +117,13 @@ def test_remove_workbook_emits_workbook_removed_signal(qtbot, view):
     remove_wb_btn = v.findChild(QPushButton, "remove_workbook_btn")
     remove_wb_btn.click()
     assert removed_ids == ["wb1"]
+
+
+def test_editing_workbook_field_emits_workbook_updated_signal(qtbot, view):
+    v, _ = view
+    updated = []
+    v.workbook_updated.connect(updated.append)
+    field = v.findChild(QLineEdit, "filename_field")
+    qtbot.keyClicks(field, "_v2")
+    assert len(updated) >= 1
+    assert updated[-1].filename == "Report.xlsx_v2"
