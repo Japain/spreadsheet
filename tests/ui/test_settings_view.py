@@ -95,3 +95,24 @@ def test_add_workbook_shows_and_selects(qtbot, view):
     # Config was saved to disk
     loaded = Config.load(config_path)
     assert len(loaded.workbooks) == 2
+
+
+# ── Signals ───────────────────────────────────────────────────────────────────
+
+def test_add_workbook_emits_workbook_added_signal(qtbot, view):
+    v, _ = view
+    added = []
+    v.workbook_added.connect(added.append)
+    add_wb_btn = v.findChild(QPushButton, "add_workbook_btn")
+    add_wb_btn.click()
+    assert len(added) == 1
+    assert added[0].id  # new workbook has a uuid
+
+
+def test_remove_workbook_emits_workbook_removed_signal(qtbot, view):
+    v, _ = view
+    removed_ids = []
+    v.workbook_removed.connect(removed_ids.append)
+    remove_wb_btn = v.findChild(QPushButton, "remove_workbook_btn")
+    remove_wb_btn.click()
+    assert removed_ids == ["wb1"]

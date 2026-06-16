@@ -88,15 +88,15 @@ class WorkbookTable(QWidget):
             header_layout.addWidget(lbl)
 
         rows_widget = QWidget()
-        rows_layout = QVBoxLayout(rows_widget)
-        rows_layout.setContentsMargins(0, 0, 0, 0)
-        rows_layout.setSpacing(2)
+        self._rows_layout = QVBoxLayout(rows_widget)
+        self._rows_layout.setContentsMargins(0, 0, 0, 0)
+        self._rows_layout.setSpacing(2)
         for wb in workbooks:
             row = WorkbookRow(wb)
             row._checkbox.stateChanged.connect(lambda _: self.selection_changed.emit())
             self._rows.append(row)
-            rows_layout.addWidget(row)
-        rows_layout.addStretch()
+            self._rows_layout.addWidget(row)
+        self._rows_layout.addStretch()
 
         scroll = QScrollArea()
         scroll.setWidget(rows_widget)
@@ -124,6 +124,23 @@ class WorkbookTable(QWidget):
 
     def get_selected_ids(self) -> list[str]:
         return [row.workbook_id for row in self._rows if row._checkbox.isChecked()]
+
+    def add_row(self, wb: "Workbook") -> None:
+        row = WorkbookRow(wb)
+        row._checkbox.stateChanged.connect(lambda _: self.selection_changed.emit())
+        self._rows.append(row)
+        self._rows_layout.insertWidget(self._rows_layout.count() - 1, row)
+        self.selection_changed.emit()
+
+    def remove_row(self, wb_id: str) -> None:
+        for i, row in enumerate(self._rows):
+            if row.workbook_id == wb_id:
+                self._rows.pop(i)
+                self._rows_layout.removeWidget(row)
+                row.setParent(None)
+                row.deleteLater()
+                self.selection_changed.emit()
+                return
 
 
 class RunBar(QWidget):
@@ -316,6 +333,22 @@ class MainView(QWidget):
         self._run_bar._input_field.textChanged.connect(self._update_run_button)
         self._run_bar._suffix_field.textChanged.connect(self._update_run_button)
         self._workbook_table.selection_changed.connect(self._update_run_button)
+        self._update_run_button()
+
+    def add_workbook(self, wb: "Workbook") -> None:
+        self._workbook_table.add_row(wb)
+        if self._workbook_table._rows:
+            self._empty_state.setVisible(False)
+            self._run_bar.setVisible(True)
+            self._workbook_table.setVisible(True)
+        self._update_run_button()
+
+    def remove_workbook(self, wb_id: str) -> None:
+        self._workbook_table.remove_row(wb_id)
+        if not self._workbook_table._rows:
+            self._empty_state.setVisible(True)
+            self._run_bar.setVisible(False)
+            self._workbook_table.setVisible(False)
         self._update_run_button()
 
     def _update_run_button(self) -> None:

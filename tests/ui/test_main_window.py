@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from PySide6.QtWidgets import QDialog
+from PySide6.QtWidgets import QDialog, QPushButton
 
 from src.config import Config, TabMapping, Workbook
 from src.main import MainWindow
@@ -211,3 +211,23 @@ def test_previous_processor_is_waited_on_before_new_run(qtbot, monkeypatch):
     window._main_view._run_bar._run_button.click()
 
     assert waited, "wait() must be called on the previous processor before starting a new run"
+
+
+# ── Settings → Run view synchronisation ──────────────────────────────────────
+
+def test_workbook_added_in_settings_appears_in_run_view(qtbot):
+    window = MainWindow(config=_config())
+    qtbot.addWidget(window)
+    window._nav_configure.click()
+    add_btn = window._settings_view.findChild(QPushButton, "add_workbook_btn")
+    add_btn.click()
+    assert len(window._main_view._workbook_table._rows) == 1
+
+
+def test_workbook_removed_in_settings_disappears_from_run_view(qtbot):
+    window = MainWindow(config=_config_with_workbooks())
+    qtbot.addWidget(window)
+    window._nav_configure.click()
+    remove_btn = window._settings_view.findChild(QPushButton, "remove_workbook_btn")
+    remove_btn.click()
+    assert len(window._main_view._workbook_table._rows) == 0

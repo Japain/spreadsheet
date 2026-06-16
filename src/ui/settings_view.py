@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from uuid import uuid4
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QFileDialog,
     QFrame,
@@ -22,6 +22,9 @@ from src.ui._workbook_list_item import _WorkbookListItem
 
 
 class SettingsView(QWidget):
+    workbook_added = Signal(object)
+    workbook_removed = Signal(str)
+
     def __init__(self, config: Config, config_path: Path, parent: QWidget | None = None):
         super().__init__(parent)
         self._config = config
@@ -201,11 +204,13 @@ class SettingsView(QWidget):
         self._config.save(self._config_path)
         self._append_list_item(wb)
         self._select(len(self._config.workbooks) - 1)
+        self.workbook_added.emit(wb)
 
     def _on_remove_selected(self) -> None:
         if self._selected_index is None:
             return
         index = self._selected_index
+        removed_id = self._config.workbooks[index].id
 
         del self._config.workbooks[index]
         self._config.save(self._config_path)
@@ -230,3 +235,4 @@ class SettingsView(QWidget):
         else:
             self._selected_index = None
             self._placeholder.show()
+        self.workbook_removed.emit(removed_id)

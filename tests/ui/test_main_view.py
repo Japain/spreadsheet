@@ -221,3 +221,51 @@ def test_empty_state_has_card_object_name(qtbot, empty_config):
     view = MainView(empty_config)
     qtbot.addWidget(view)
     assert view._empty_state.objectName() == "card"
+
+
+# ── Dynamic workbook add / remove ─────────────────────────────────────────────
+
+def test_add_workbook_appends_row_to_table(qtbot, two_workbooks):
+    view = MainView(two_workbooks)
+    qtbot.addWidget(view)
+    new_wb = Workbook(id="wb3", filename="New.xlsx", folder="/new", mappings=[TabMapping("Sheet1", "Sheet1")])
+    view.add_workbook(new_wb)
+    assert len(view._workbook_table._rows) == 3
+
+
+def test_add_workbook_row_has_correct_id(qtbot, two_workbooks):
+    view = MainView(two_workbooks)
+    qtbot.addWidget(view)
+    new_wb = Workbook(id="wb3", filename="New.xlsx", folder="/new", mappings=[TabMapping("Sheet1", "Sheet1")])
+    view.add_workbook(new_wb)
+    assert view._workbook_table._rows[-1].workbook_id == "wb3"
+
+
+def test_remove_workbook_removes_correct_row(qtbot, two_workbooks):
+    view = MainView(two_workbooks)
+    qtbot.addWidget(view)
+    view.remove_workbook("wb1")
+    assert len(view._workbook_table._rows) == 1
+    assert view._workbook_table._rows[0].workbook_id == "wb2"
+
+
+def test_add_workbook_to_empty_view_shows_run_bar(qtbot, empty_config):
+    view = MainView(empty_config)
+    qtbot.addWidget(view)
+    assert view._run_bar.isHidden()
+    new_wb = Workbook(id="wb1", filename="New.xlsx", folder="/new", mappings=[TabMapping("Sheet1", "Sheet1")])
+    view.add_workbook(new_wb)
+    assert not view._run_bar.isHidden()
+    assert view._empty_state.isHidden()
+
+
+def test_remove_last_workbook_shows_empty_state(qtbot):
+    config = Config(
+        input_folder="",
+        workbooks=[Workbook(id="wb1", filename="R.xlsx", folder="/t", mappings=[TabMapping("A", "A")])],
+    )
+    view = MainView(config)
+    qtbot.addWidget(view)
+    view.remove_workbook("wb1")
+    assert not view._empty_state.isHidden()
+    assert view._run_bar.isHidden()
