@@ -4,6 +4,7 @@ from pytestqt.qtbot import QtBot
 
 from src.config import Config, TabMapping, Workbook
 from src.ui.settings_view import SettingsView
+from tests.ui._helpers import _make_cancel_msg_box, _make_confirm_msg_box
 
 
 @pytest.fixture
@@ -127,48 +128,6 @@ def test_editing_workbook_field_emits_workbook_updated_signal(qtbot, view):
     qtbot.keyClicks(field, "_v2")
     assert len(updated) >= 1
     assert updated[-1].filename == "Report.xlsx_v2"
-
-
-# ── Reset helpers ─────────────────────────────────────────────────────────────
-
-def _make_confirm_msg_box():
-    """QMessageBox stub whose clickedButton() returns the Reset button."""
-    class FakeMessageBox:
-        def __init__(self, parent=None):
-            self._buttons = []
-            self._clicked = None
-        def setWindowTitle(self, t): pass
-        def setText(self, t): pass
-        def addButton(self, *args):
-            btn = object()
-            self._buttons.append(btn)
-            return btn
-        def setDefaultButton(self, btn): pass
-        def exec(self):
-            self._clicked = self._buttons[1]  # second addButton call = Reset
-        def clickedButton(self):
-            return self._clicked
-    return FakeMessageBox
-
-
-def _make_cancel_msg_box():
-    """QMessageBox stub whose clickedButton() returns the Cancel button."""
-    class FakeMessageBox:
-        def __init__(self, parent=None):
-            self._buttons = []
-            self._clicked = None
-        def setWindowTitle(self, t): pass
-        def setText(self, t): pass
-        def addButton(self, *args):
-            btn = object()
-            self._buttons.append(btn)
-            return btn
-        def setDefaultButton(self, btn): pass
-        def exec(self):
-            self._clicked = self._buttons[0]  # first addButton call = Cancel
-        def clickedButton(self):
-            return self._clicked
-    return FakeMessageBox
 
 
 @pytest.fixture

@@ -7,6 +7,7 @@ from src.main import MainWindow
 from src.ui.history_view import HistoryView
 from src.ui.main_view import MainView
 from src.ui.settings_view import SettingsView
+from tests.ui._helpers import _make_confirm_msg_box
 
 
 def _config() -> Config:
@@ -245,25 +246,6 @@ def test_workbook_renamed_in_settings_updates_run_view_row(qtbot):
 
 
 # ── Reset integration ─────────────────────────────────────────────────────────
-
-def _make_confirm_msg_box():
-    """QMessageBox stub whose clickedButton() returns the Reset button."""
-    class FakeMessageBox:
-        def __init__(self, parent=None):
-            self._buttons = []
-            self._clicked = None
-        def setWindowTitle(self, t): pass
-        def setText(self, t): pass
-        def addButton(self, *args):
-            btn = object()
-            self._buttons.append(btn)
-            return btn
-        def setDefaultButton(self, btn): pass
-        def exec(self):
-            self._clicked = self._buttons[1]  # index 1 = Reset button
-        def clickedButton(self):
-            return self._clicked
-    return FakeMessageBox
 
 
 def test_reset_in_settings_clears_run_view(qtbot, monkeypatch):
