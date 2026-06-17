@@ -242,3 +242,35 @@ def test_workbook_renamed_in_settings_updates_run_view_row(qtbot):
     qtbot.keyClicks(field, "renamed.xlsx")
     row = window._main_view._workbook_table._rows[0]
     assert row._name_label.text() == "renamed.xlsx"
+
+
+# ── Reset integration ─────────────────────────────────────────────────────────
+
+def _make_confirm_msg_box():
+    """QMessageBox stub whose clickedButton() returns the Reset button."""
+    class FakeMessageBox:
+        def __init__(self, parent=None):
+            self._buttons = []
+            self._clicked = None
+        def setWindowTitle(self, t): pass
+        def setText(self, t): pass
+        def addButton(self, *args):
+            btn = object()
+            self._buttons.append(btn)
+            return btn
+        def setDefaultButton(self, btn): pass
+        def exec(self):
+            self._clicked = self._buttons[1]  # index 1 = Reset button
+        def clickedButton(self):
+            return self._clicked
+    return FakeMessageBox
+
+
+def test_reset_in_settings_clears_run_view(qtbot, monkeypatch):
+    window = MainWindow(config=_config_with_workbooks())
+    qtbot.addWidget(window)
+    window._nav_configure.click()
+    monkeypatch.setattr("src.ui.settings_view.QMessageBox", _make_confirm_msg_box())
+    reset_btn = window._settings_view.findChild(QPushButton, "reset_btn")
+    reset_btn.click()
+    assert len(window._main_view._workbook_table._rows) == 0
