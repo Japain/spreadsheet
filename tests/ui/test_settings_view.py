@@ -225,3 +225,11 @@ def test_reset_clears_list_and_shows_empty_label(qtbot, monkeypatch, two_wb_view
     v.findChild(QPushButton, "reset_btn").click()
     assert len(v.findChildren(QWidget, "workbook_list_item")) == 0
     assert v._empty_lbl.isVisible()
+
+
+def test_reset_clears_input_folder_field_widget(qtbot, monkeypatch, two_wb_view):
+    v, _ = two_wb_view
+    monkeypatch.setattr("src.ui.settings_view.QMessageBox", _make_confirm_msg_box())
+    v.findChild(QPushButton, "reset_btn").click()
+    field = v.findChild(QLineEdit, "input_folder_field")
+    assert field.text() == ""
