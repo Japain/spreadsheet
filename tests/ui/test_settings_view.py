@@ -184,6 +184,7 @@ def two_wb_view(qtbot, tmp_path):
     config.save(config_path)
     v = SettingsView(config, config_path)
     qtbot.addWidget(v)
+    v.show()
     return v, config_path
 
 
