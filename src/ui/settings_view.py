@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from uuid import uuid4
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, QSignalBlocker, Signal
 from PySide6.QtWidgets import (
     QFileDialog,
     QFrame,
@@ -154,7 +154,8 @@ class SettingsView(QWidget):
         self._empty_lbl.setVisible(True)
         self._workbooks_title.setText("Target workbooks (0)")
         self._placeholder.show()
-        self._input_folder_field.setText("")
+        with QSignalBlocker(self._input_folder_field):
+            self._input_folder_field.setText("")
 
     # ── Left pane ──────────────────────────────────────────────────────────────
 
