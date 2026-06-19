@@ -3,18 +3,24 @@ from __future__ import annotations
 from pathlib import Path
 from uuid import uuid4
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QSignalBlocker, Signal
 from PySide6.QtWidgets import (
     QFileDialog,
     QFrame,
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QMessageBox,
     QPushButton,
     QScrollArea,
     QVBoxLayout,
     QWidget,
 )
+
+# Cache enum values at import time so monkeypatching QMessageBox in tests
+# doesn't break access to StandardButton / ButtonRole.
+_MB_CANCEL = QMessageBox.StandardButton.Cancel
+_MB_DESTRUCTIVE = QMessageBox.ButtonRole.DestructiveRole
 
 from src.config import Config, TabMapping, Workbook
 from src.ui._workbook_detail_pane import _WorkbookDetailPane
@@ -22,6 +28,10 @@ from src.ui._workbook_list_item import _WorkbookListItem
 
 
 class SettingsView(QWidget):
+    workbook_added = Signal(object)
+    workbook_removed = Signal(str)
+    workbook_updated = Signal(object)
+
     def __init__(self, config: Config, config_path: Path, parent: QWidget | None = None):
         super().__init__(parent)
         self._config = config
@@ -35,6 +45,7 @@ class SettingsView(QWidget):
         outer.setSpacing(12)
 
         outer.addWidget(self._build_global_card())
+        outer.addWidget(self._build_danger_zone_card())
 
         panes = QWidget()
         panes_layout = QHBoxLayout(panes)
@@ -85,6 +96,65 @@ class SettingsView(QWidget):
     def _on_input_folder_changed(self, value: str) -> None:
         self._config.input_folder = value
         self._config.save(self._config_path)
+
+    # ── Danger zone ────────────────────────────────────────────────────────────
+
+    def _build_danger_zone_card(self) -> QWidget:
+        card = QWidget()
+        card.setObjectName("danger_zone_card")
+        layout = QHBoxLayout(card)
+        layout.setContentsMargins(12, 12, 12, 12)
+        layout.setSpacing(8)
+        desc = QLabel("Remove all target workbooks and reset the default input folder.")
+        layout.addWidget(desc, 1)
+        reset_btn = QPushButton("Reset…")
+        reset_btn.setObjectName("reset_btn")
+        reset_btn.clicked.connect(self._on_reset)
+        layout.addWidget(reset_btn)
+        return card
+
+    def _on_reset(self) -> None:
+        count = len(self._config.workbooks)
+        msg = QMessageBox(self)
+        msg.setWindowTitle("Reset configuration?")
+        msg.setText(
+            f"This will remove:\n\n"
+            f"  • All target workbooks ({count})\n"
+            f"  • Default input folder\n\n"
+            f"This cannot be undone."
+        )
+        cancel_btn = msg.addButton(_MB_CANCEL)
+        reset_btn = msg.addButton("Reset", _MB_DESTRUCTIVE)
+        msg.setDefaultButton(cancel_btn)
+        msg.exec()
+        if msg.clickedButton() is not reset_btn:
+            return
+
+        for wb in list(self._config.workbooks):
+            self.workbook_removed.emit(wb.id)
+
+        self._config.workbooks = []
+        self._config.input_folder = ""
+        self._config.save(self._config_path)
+
+        for item in list(self._list_items):
+            self._list_layout.removeWidget(item)
+            item.setParent(None)
+            item.deleteLater()
+        self._list_items.clear()
+
+        if self._detail_pane is not None:
+            self._right_layout.removeWidget(self._detail_pane)
+            self._detail_pane.setParent(None)
+            self._detail_pane.deleteLater()
+            self._detail_pane = None
+
+        self._selected_index = None
+        self._empty_lbl.setVisible(True)
+        self._workbooks_title.setText("Target workbooks (0)")
+        self._placeholder.show()
+        with QSignalBlocker(self._input_folder_field):
+            self._input_folder_field.setText("")
 
     # ── Left pane ──────────────────────────────────────────────────────────────
 
@@ -183,6 +253,7 @@ class SettingsView(QWidget):
                 self._list_items[self._selected_index].refresh(
                     self._config.workbooks[self._selected_index]
                 )
+                self.workbook_updated.emit(self._config.workbooks[self._selected_index])
 
         self._detail_pane = _WorkbookDetailPane(workbook, save)
         self._detail_pane.workbook_removed.connect(self._on_remove_selected)
@@ -201,11 +272,13 @@ class SettingsView(QWidget):
         self._config.save(self._config_path)
         self._append_list_item(wb)
         self._select(len(self._config.workbooks) - 1)
+        self.workbook_added.emit(wb)
 
     def _on_remove_selected(self) -> None:
         if self._selected_index is None:
             return
         index = self._selected_index
+        removed_id = self._config.workbooks[index].id
 
         del self._config.workbooks[index]
         self._config.save(self._config_path)
@@ -230,3 +303,4 @@ class SettingsView(QWidget):
         else:
             self._selected_index = None
             self._placeholder.show()
+        self.workbook_removed.emit(removed_id)

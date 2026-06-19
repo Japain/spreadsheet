@@ -1,12 +1,13 @@
 from unittest.mock import MagicMock
 
-from PySide6.QtWidgets import QDialog
+from PySide6.QtWidgets import QDialog, QLineEdit, QPushButton
 
 from src.config import Config, TabMapping, Workbook
 from src.main import MainWindow
 from src.ui.history_view import HistoryView
 from src.ui.main_view import MainView
 from src.ui.settings_view import SettingsView
+from tests.ui._helpers import _make_confirm_msg_box
 
 
 def _config() -> Config:
@@ -211,3 +212,47 @@ def test_previous_processor_is_waited_on_before_new_run(qtbot, monkeypatch):
     window._main_view._run_bar._run_button.click()
 
     assert waited, "wait() must be called on the previous processor before starting a new run"
+
+
+# ── Settings → Run view synchronisation ──────────────────────────────────────
+
+def test_workbook_added_in_settings_appears_in_run_view(qtbot):
+    window = MainWindow(config=_config())
+    qtbot.addWidget(window)
+    window._nav_configure.click()
+    add_btn = window._settings_view.findChild(QPushButton, "add_workbook_btn")
+    add_btn.click()
+    assert len(window._main_view._workbook_table._rows) == 1
+
+
+def test_workbook_removed_in_settings_disappears_from_run_view(qtbot):
+    window = MainWindow(config=_config_with_workbooks())
+    qtbot.addWidget(window)
+    window._nav_configure.click()
+    remove_btn = window._settings_view.findChild(QPushButton, "remove_workbook_btn")
+    remove_btn.click()
+    assert len(window._main_view._workbook_table._rows) == 0
+
+
+def test_workbook_renamed_in_settings_updates_run_view_row(qtbot):
+    window = MainWindow(config=_config_with_workbooks())
+    qtbot.addWidget(window)
+    window._nav_configure.click()
+    field = window._settings_view.findChild(QLineEdit, "filename_field")
+    field.clear()
+    qtbot.keyClicks(field, "renamed.xlsx")
+    row = window._main_view._workbook_table._rows[0]
+    assert row._name_label.text() == "renamed.xlsx"
+
+
+# ── Reset integration ─────────────────────────────────────────────────────────
+
+
+def test_reset_in_settings_clears_run_view(qtbot, monkeypatch):
+    window = MainWindow(config=_config_with_workbooks())
+    qtbot.addWidget(window)
+    window._nav_configure.click()
+    monkeypatch.setattr("src.ui.settings_view.QMessageBox", _make_confirm_msg_box())
+    reset_btn = window._settings_view.findChild(QPushButton, "reset_btn")
+    reset_btn.click()
+    assert len(window._main_view._workbook_table._rows) == 0

@@ -1,6 +1,31 @@
 # Quarterly — Workbook Updater
 
-A PySide6 desktop application that copies Excel tab data between workbooks and exports versioned output files. Packaged as a Windows `.exe` via PyInstaller.
+Quarterly is a Windows desktop tool that automates the quarter-end process of copying data from a single **master Excel workbook** into multiple pre-configured **target workbooks**, then exporting each as a versioned output file.
+
+Without this tool an analyst must manually open each target workbook, find the right sheet, paste in the latest data (being careful not to disturb adjacent formulas or formatting), rename the file, and repeat — across 2–8 workbooks every quarter. Quarterly does all of that in one click.
+
+## What it does
+
+1. **Reads** one or more named sheets from a master `.xlsx` file (read-only — the source is never modified).
+2. **Pastes values** into the matching sheet in each target workbook, clearing only the data region so surrounding formulas and formatting are preserved.
+3. **Exports** each updated workbook as a new file named `{original_name}_{suffix}.xlsx` — the originals are never overwritten.
+4. **Detects conflicts** before the run starts: if an output file already exists you are prompted to confirm or cancel before anything is written.
+5. **Logs every run** so you can review which workbooks were processed, skipped, or errored.
+
+## Key concepts
+
+| Term | Meaning |
+|---|---|
+| Master Workbook | The source `.xlsx` file containing fresh data for this quarter |
+| Target Workbook | A pre-existing report file that receives updated data |
+| Tab Mapping | A configured link between a sheet in the master and a sheet in a target workbook |
+| Output Suffix | A user-typed string (e.g. `Q2_2026`) appended to each exported filename |
+
+## Views
+
+- **Run screen** — pick the master file, enter a suffix, check/uncheck which workbooks to include, then click Run.
+- **Settings** — add or remove target workbooks and their tab mappings; changes are saved immediately to a local JSON config file.
+- **History** — browse the log of past runs.
 
 ## Requirements
 

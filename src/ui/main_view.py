@@ -30,40 +30,55 @@ class WorkbookRow(QWidget):
         self._checkbox = QCheckBox()
         self._checkbox.setChecked(True)
 
-        name_label = QLabel(workbook.filename)
-        name_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        self._name_label = QLabel(workbook.filename)
+        self._name_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
         input_widget = QWidget()
-        input_layout = QHBoxLayout(input_widget)
-        input_layout.setContentsMargins(0, 0, 0, 0)
-        input_layout.setSpacing(4)
+        self._input_layout = QHBoxLayout(input_widget)
+        self._input_layout.setContentsMargins(0, 0, 0, 0)
+        self._input_layout.setSpacing(4)
         for m in workbook.mappings:
-            input_layout.addWidget(TabChip(m.input))
-        input_layout.addStretch()
+            self._input_layout.addWidget(TabChip(m.input))
+        self._input_layout.addStretch()
 
         target_widget = QWidget()
-        target_layout = QHBoxLayout(target_widget)
-        target_layout.setContentsMargins(0, 0, 0, 0)
-        target_layout.setSpacing(4)
+        self._target_layout = QHBoxLayout(target_widget)
+        self._target_layout.setContentsMargins(0, 0, 0, 0)
+        self._target_layout.setSpacing(4)
         for m in workbook.mappings:
-            target_layout.addWidget(TabChip(m.target))
-        target_layout.addStretch()
+            self._target_layout.addWidget(TabChip(m.target))
+        self._target_layout.addStretch()
 
-        folder_label = QLabel(workbook.folder)
-        folder_label.setObjectName("monospace")
+        self._folder_label = QLabel(workbook.folder)
+        self._folder_label.setObjectName("monospace")
 
         row_layout = QHBoxLayout(self)
         row_layout.setContentsMargins(8, 4, 8, 4)
         row_layout.addWidget(self._checkbox)
-        row_layout.addWidget(name_label, 2)
+        row_layout.addWidget(self._name_label, 2)
         row_layout.addWidget(input_widget, 1)
         row_layout.addWidget(target_widget, 1)
-        row_layout.addWidget(folder_label, 2)
+        row_layout.addWidget(self._folder_label, 2)
 
         self._opacity = QGraphicsOpacityEffect(self)
         self.setGraphicsEffect(self._opacity)
         self._checkbox.stateChanged.connect(self._update_opacity)
         self._update_opacity()
+
+    def refresh(self, wb: "Workbook") -> None:
+        self._name_label.setText(wb.filename)
+        self._folder_label.setText(wb.folder)
+        self._rebuild_chips(self._input_layout, [m.input for m in wb.mappings])
+        self._rebuild_chips(self._target_layout, [m.target for m in wb.mappings])
+
+    def _rebuild_chips(self, layout: "QHBoxLayout", labels: list[str]) -> None:
+        while layout.count():
+            item = layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+        for label in labels:
+            layout.addWidget(TabChip(label))
+        layout.addStretch()
 
     def _update_opacity(self) -> None:
         self._opacity.setOpacity(1.0 if self._checkbox.isChecked() else 0.4)
@@ -88,15 +103,15 @@ class WorkbookTable(QWidget):
             header_layout.addWidget(lbl)
 
         rows_widget = QWidget()
-        rows_layout = QVBoxLayout(rows_widget)
-        rows_layout.setContentsMargins(0, 0, 0, 0)
-        rows_layout.setSpacing(2)
+        self._rows_layout = QVBoxLayout(rows_widget)
+        self._rows_layout.setContentsMargins(0, 0, 0, 0)
+        self._rows_layout.setSpacing(2)
         for wb in workbooks:
             row = WorkbookRow(wb)
             row._checkbox.stateChanged.connect(lambda _: self.selection_changed.emit())
             self._rows.append(row)
-            rows_layout.addWidget(row)
-        rows_layout.addStretch()
+            self._rows_layout.addWidget(row)
+        self._rows_layout.addStretch()
 
         scroll = QScrollArea()
         scroll.setWidget(rows_widget)
@@ -124,6 +139,29 @@ class WorkbookTable(QWidget):
 
     def get_selected_ids(self) -> list[str]:
         return [row.workbook_id for row in self._rows if row._checkbox.isChecked()]
+
+    def add_row(self, wb: "Workbook") -> None:
+        row = WorkbookRow(wb)
+        row._checkbox.stateChanged.connect(lambda _: self.selection_changed.emit())
+        self._rows.append(row)
+        self._rows_layout.insertWidget(self._rows_layout.count() - 1, row)
+        self.selection_changed.emit()
+
+    def remove_row(self, wb_id: str) -> None:
+        for i, row in enumerate(self._rows):
+            if row.workbook_id == wb_id:
+                self._rows.pop(i)
+                self._rows_layout.removeWidget(row)
+                row.setParent(None)
+                row.deleteLater()
+                self.selection_changed.emit()
+                return
+
+    def refresh_row(self, wb: "Workbook") -> None:
+        for row in self._rows:
+            if row.workbook_id == wb.id:
+                row.refresh(wb)
+                return
 
 
 class RunBar(QWidget):
@@ -261,8 +299,6 @@ class _EmptyState(QWidget):
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
         self.setObjectName("card")
-        icon = QLabel("📂")
-        icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         heading = QLabel("No workbooks configured")
         heading.setAlignment(Qt.AlignmentFlag.AlignCenter)
         heading.setStyleSheet("font-size: 16px; font-weight: bold;")
@@ -276,7 +312,6 @@ class _EmptyState(QWidget):
 
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(icon)
         layout.addWidget(heading)
         layout.addWidget(description)
         layout.addWidget(self._add_btn, 0, Qt.AlignmentFlag.AlignCenter)
@@ -317,6 +352,25 @@ class MainView(QWidget):
         self._run_bar._suffix_field.textChanged.connect(self._update_run_button)
         self._workbook_table.selection_changed.connect(self._update_run_button)
         self._update_run_button()
+
+    def add_workbook(self, wb: "Workbook") -> None:
+        self._workbook_table.add_row(wb)
+        if self._workbook_table._rows:
+            self._empty_state.setVisible(False)
+            self._run_bar.setVisible(True)
+            self._workbook_table.setVisible(True)
+        self._update_run_button()
+
+    def remove_workbook(self, wb_id: str) -> None:
+        self._workbook_table.remove_row(wb_id)
+        if not self._workbook_table._rows:
+            self._empty_state.setVisible(True)
+            self._run_bar.setVisible(False)
+            self._workbook_table.setVisible(False)
+        self._update_run_button()
+
+    def update_workbook(self, wb: "Workbook") -> None:
+        self._workbook_table.refresh_row(wb)
 
     def _update_run_button(self) -> None:
         has_input = bool(self._run_bar._input_field.text())
