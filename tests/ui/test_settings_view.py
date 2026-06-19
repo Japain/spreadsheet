@@ -191,3 +191,68 @@ def test_reset_clears_input_folder_field_widget(qtbot, monkeypatch, two_wb_view)
     v.findChild(QPushButton, "reset_btn").click()
     field = v.findChild(QLineEdit, "input_folder_field")
     assert field.text() == ""
+
+
+def test_completer_populated_from_folder(qtbot, tmp_path):
+    folder = tmp_path / "target"
+    folder.mkdir()
+    (folder / "Report.xlsx").touch()
+    (folder / "Budget.xlsx").touch()
+    (folder / "notes.txt").touch()  # must not appear
+
+    config_path = tmp_path / "config.json"
+    config = Config(
+        input_folder="",
+        workbooks=[Workbook(id="wb1", filename="", folder=str(folder), mappings=[TabMapping("", "")])],
+    )
+    config.save(config_path)
+    v = SettingsView(config, config_path)
+    qtbot.addWidget(v)
+
+    field = v.findChild(QLineEdit, "filename_field")
+    completer = field.completer()
+    assert completer is not None
+    model = completer.model()
+    names = sorted(model.data(model.index(i, 0)) for i in range(model.rowCount()))
+    assert names == ["Budget.xlsx", "Report.xlsx"]
+
+
+def test_completer_empty_when_folder_invalid(qtbot, tmp_path):
+    config_path = tmp_path / "config.json"
+    config = Config(
+        input_folder="",
+        workbooks=[Workbook(id="wb1", filename="", folder="/nonexistent/path/xyz", mappings=[TabMapping("", "")])],
+    )
+    config.save(config_path)
+    v = SettingsView(config, config_path)
+    qtbot.addWidget(v)
+
+    field = v.findChild(QLineEdit, "filename_field")
+    assert field.completer().model().rowCount() == 0
+
+
+def test_completer_refreshes_on_folder_change(qtbot, tmp_path):
+    folder1 = tmp_path / "folder1"
+    folder1.mkdir()
+    (folder1 / "Alpha.xlsx").touch()
+    folder2 = tmp_path / "folder2"
+    folder2.mkdir()
+    (folder2 / "Beta.xlsx").touch()
+
+    config_path = tmp_path / "config.json"
+    config = Config(
+        input_folder="",
+        workbooks=[Workbook(id="wb1", filename="", folder=str(folder1), mappings=[TabMapping("", "")])],
+    )
+    config.save(config_path)
+    v = SettingsView(config, config_path)
+    qtbot.addWidget(v)
+
+    folder_field = v.findChild(QLineEdit, "folder_field")
+    folder_field.setText(str(folder2))
+
+    field = v.findChild(QLineEdit, "filename_field")
+    model = field.completer().model()
+    names = [model.data(model.index(i, 0)) for i in range(model.rowCount())]
+    assert "Beta.xlsx" in names
+    assert "Alpha.xlsx" not in names
