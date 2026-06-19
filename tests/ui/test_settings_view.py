@@ -1,7 +1,5 @@
 import pytest
 from PySide6.QtWidgets import QLabel, QLineEdit, QPushButton, QWidget
-from pytestqt.qtbot import QtBot
-
 from src.config import Config, TabMapping, Workbook
 from src.ui.settings_view import SettingsView
 from tests.ui._helpers import _make_cancel_msg_box, _make_confirm_msg_box

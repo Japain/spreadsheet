@@ -9,6 +9,13 @@ QWidget#card {
     border-radius: 8px;
 }
 
+QWidget#danger_zone_card {
+    background-color: #ffffff;
+    border: 1px solid #ebebeb;
+    border-left: 3px solid #e53e3e;
+    border-radius: 8px;
+}
+
 QWidget#sidebar {
     background-color: #f5f6fa;
 }

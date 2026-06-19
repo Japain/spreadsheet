@@ -55,15 +55,15 @@ Reset button clicked
           - input_folder_field.setText("")
 ```
 
-The existing `workbook_removed` signal (already connected to `MainView.remove_workbook`) handles the run-view cleanup automatically — no new wiring needed in `MainWindow`.
+The `workbook_removed` signal is wired in `MainWindow` to `MainView.remove_workbook`. In addition, the implementation also added `workbook_added` and `workbook_updated` signals so that all workbook CRUD operations in `SettingsView` propagate live to the Run view — not just removal. This required new wiring in `src/main.py` and new dynamic update methods (`add_workbook`, `remove_workbook`, `refresh_workbook`) in `src/ui/main_view.py`.
 
 ## UI Changes
 
 | File | Change |
 |---|---|
-| `src/ui/settings_view.py` | Add `_build_danger_zone_card()` helper; call it from `__init__`; add `_on_reset` method |
-
-No changes needed to `main_view.py`, `main.py`, or any other file.
+| `src/ui/settings_view.py` | Add `_build_danger_zone_card()` helper; call it from `__init__`; add `_on_reset` method; emit `workbook_added`/`workbook_removed`/`workbook_updated` signals for all CRUD operations |
+| `src/ui/main_view.py` | Add `add_workbook`, `remove_workbook`, `refresh_workbook` methods for live sync from `SettingsView` signals |
+| `src/main.py` | Wire `SettingsView` workbook signals to `MainView` update methods (lines 51–53) |
 
 ## Testing
 

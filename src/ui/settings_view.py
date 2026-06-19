@@ -102,7 +102,6 @@ class SettingsView(QWidget):
     def _build_danger_zone_card(self) -> QWidget:
         card = QWidget()
         card.setObjectName("danger_zone_card")
-        card.setStyleSheet("border-left: 3px solid #e53e3e; padding-left: 8px;")
         layout = QHBoxLayout(card)
         layout.setContentsMargins(12, 12, 12, 12)
         layout.setSpacing(8)
