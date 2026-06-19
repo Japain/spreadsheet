@@ -50,7 +50,6 @@ class _WorkbookDetailPane(QWidget):
         self._completer.setCompletionMode(QCompleter.CompletionMode.PopupCompletion)
         self._completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self._filename_field.setCompleter(self._completer)
-        self._filename_field.installEventFilter(self)
 
         # Target folder
         layout.addWidget(QLabel("Target folder"))
@@ -117,6 +116,7 @@ class _WorkbookDetailPane(QWidget):
         self._filename_field.textChanged.connect(self._on_filename_changed)
         self._folder_field.textChanged.connect(self._on_folder_changed)
         self._folder_field.textChanged.connect(self._refresh_completer)
+        self._filename_field.installEventFilter(self)
         self._refresh_completer(workbook.folder)
 
         self._refresh_mapping_controls()
@@ -144,7 +144,7 @@ class _WorkbookDetailPane(QWidget):
 
     def _refresh_completer(self, folder: str) -> None:
         path = Path(folder)
-        if path.is_dir():
+        if folder and path.is_dir():
             names = sorted(p.name for p in path.glob("*.xlsx"))
         else:
             names = []

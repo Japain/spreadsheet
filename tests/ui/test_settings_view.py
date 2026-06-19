@@ -287,3 +287,36 @@ def test_completer_refreshes_on_filename_field_focus(qtbot, tmp_path):
     model = field.completer().model()
     names = [model.data(model.index(i, 0)) for i in range(model.rowCount())]
     assert "LateArrival.xlsx" in names
+
+
+def test_completer_empty_when_folder_blank(qtbot, tmp_path):
+    config_path = tmp_path / "config.json"
+    config = Config(
+        input_folder="",
+        workbooks=[Workbook(id="wb1", filename="", folder="", mappings=[TabMapping("", "")])],
+    )
+    config.save(config_path)
+    v = SettingsView(config, config_path)
+    qtbot.addWidget(v)
+
+    field = v.findChild(QLineEdit, "filename_field")
+    assert field.completer().model().rowCount() == 0
+
+
+def test_completer_empty_when_folder_has_no_xlsx(qtbot, tmp_path):
+    folder = tmp_path / "target"
+    folder.mkdir()
+    (folder / "notes.txt").touch()
+    (folder / "data.csv").touch()
+
+    config_path = tmp_path / "config.json"
+    config = Config(
+        input_folder="",
+        workbooks=[Workbook(id="wb1", filename="", folder=str(folder), mappings=[TabMapping("", "")])],
+    )
+    config.save(config_path)
+    v = SettingsView(config, config_path)
+    qtbot.addWidget(v)
+
+    field = v.findChild(QLineEdit, "filename_field")
+    assert field.completer().model().rowCount() == 0
