@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QStringListModel, Signal
+from PySide6.QtCore import QEvent, Qt, QStringListModel, Signal
 from PySide6.QtWidgets import (
     QCompleter,
     QFileDialog,
@@ -50,6 +50,7 @@ class _WorkbookDetailPane(QWidget):
         self._completer.setCompletionMode(QCompleter.CompletionMode.PopupCompletion)
         self._completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self._filename_field.setCompleter(self._completer)
+        self._filename_field.installEventFilter(self)
 
         # Target folder
         layout.addWidget(QLabel("Target folder"))
@@ -148,6 +149,11 @@ class _WorkbookDetailPane(QWidget):
         else:
             names = []
         self._completer.setModel(QStringListModel(names, self._completer))
+
+    def eventFilter(self, obj, event) -> bool:
+        if obj is self._filename_field and event.type() == QEvent.Type.FocusIn:
+            self._refresh_completer(self._folder_field.text())
+        return super().eventFilter(obj, event)
 
     def _browse_folder(self) -> None:
         path = QFileDialog.getExistingDirectory(self, "Select folder", self._workbook.folder)

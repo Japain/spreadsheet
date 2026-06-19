@@ -1,5 +1,5 @@
 import pytest
-from PySide6.QtWidgets import QLabel, QLineEdit, QPushButton, QWidget
+from PySide6.QtWidgets import QApplication, QLabel, QLineEdit, QPushButton, QWidget
 from src.config import Config, TabMapping, Workbook
 from src.ui.settings_view import SettingsView
 from tests.ui._helpers import _make_cancel_msg_box, _make_confirm_msg_box
@@ -256,3 +256,34 @@ def test_completer_refreshes_on_folder_change(qtbot, tmp_path):
     names = [model.data(model.index(i, 0)) for i in range(model.rowCount())]
     assert "Beta.xlsx" in names
     assert "Alpha.xlsx" not in names
+
+
+def test_completer_refreshes_on_filename_field_focus(qtbot, tmp_path):
+    folder = tmp_path / "target"
+    folder.mkdir()
+
+    config_path = tmp_path / "config.json"
+    config = Config(
+        input_folder="",
+        workbooks=[Workbook(id="wb1", filename="", folder=str(folder), mappings=[TabMapping("", "")])],
+    )
+    config.save(config_path)
+    v = SettingsView(config, config_path)
+    qtbot.addWidget(v)
+    v.show()
+    qtbot.waitExposed(v)
+
+    # Add a file after the view was created (completer initially empty)
+    (folder / "LateArrival.xlsx").touch()
+
+    field = v.findChild(QLineEdit, "filename_field")
+    # Send a synthetic FocusIn event to trigger the event filter
+    from PySide6.QtGui import QFocusEvent
+    from PySide6.QtCore import QEvent, Qt
+    event = QFocusEvent(QEvent.Type.FocusIn)
+    QApplication.instance().sendEvent(field, event)
+    QApplication.processEvents()
+
+    model = field.completer().model()
+    names = [model.data(model.index(i, 0)) for i in range(model.rowCount())]
+    assert "LateArrival.xlsx" in names
