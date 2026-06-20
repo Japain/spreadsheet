@@ -49,6 +49,8 @@ class _WorkbookDetailPane(QWidget):
         self._completer = QCompleter(self)
         self._completer.setCompletionMode(QCompleter.CompletionMode.PopupCompletion)
         self._completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        self._completer_model = QStringListModel(self._completer)
+        self._completer.setModel(self._completer_model)
         self._filename_field.setCompleter(self._completer)
 
         # Target folder
@@ -145,14 +147,15 @@ class _WorkbookDetailPane(QWidget):
     def _refresh_completer(self, folder: str) -> None:
         path = Path(folder)
         if folder and path.is_dir():
-            names = sorted(p.name for p in path.glob("*.xlsx"))
+            names = sorted(p.name for p in path.iterdir() if p.suffix.lower() == ".xlsx")
         else:
             names = []
-        self._completer.setModel(QStringListModel(names, self._completer))
+        self._completer_model.setStringList(names)
 
     def eventFilter(self, obj, event) -> bool:
         if obj is self._filename_field and event.type() == QEvent.Type.FocusIn:
             self._refresh_completer(self._folder_field.text())
+            self._completer.complete()
         return super().eventFilter(obj, event)
 
     def _browse_folder(self) -> None:
