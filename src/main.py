@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import sys
-from importlib.metadata import version as _pkg_version, PackageNotFoundError
-
 from PySide6.QtWidgets import (
     QApplication,
     QDialog,
@@ -112,11 +110,7 @@ class MainWindow(QMainWindow):
         config_lbl.setToolTip(str(DEFAULT_CONFIG_PATH))
         config_lbl.setStyleSheet("font-size:10px;")
 
-        try:
-            _version = _pkg_version("quarterly")
-        except PackageNotFoundError:
-            _version = "v1.0.0"
-        version_lbl = QLabel(_version)
+        version_lbl = QLabel("v1.0.0")
         version_lbl.setObjectName("secondary")
         version_lbl.setStyleSheet("font-size:10px;")
 

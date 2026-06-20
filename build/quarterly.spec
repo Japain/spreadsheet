@@ -47,7 +47,7 @@ exe = EXE(
 coll = COLLECT(
     exe,
     a.binaries,
-    a.zipfiles,
+    a.zipfiles,  # always empty in PyInstaller 6.x; included for template completeness
     a.datas,
     strip=False,
     upx=False,

@@ -316,10 +316,10 @@ Not a pass/fail test — a screenshot capture script run manually as part of QA.
 
 ## Phase 11 — Packaging (`build/quarterly.spec`)
 
-- [ ] Write PyInstaller spec file (`--onedir` mode)
-- [ ] Hidden imports: `openpyxl`, `PySide6`
-- [ ] App name: `quarterly`
-- [ ] Output: `dist/quarterly/quarterly.exe`
+- [x] Write PyInstaller spec file (`--onedir` mode)
+- [x] Hidden imports: `openpyxl`, `PySide6`
+- [x] App name: `quarterly`
+- [x] Output: `dist/quarterly/quarterly.exe`
 - [ ] Verify no admin privileges required
 - [ ] Test on a clean Windows machine (no Python installed)
 
