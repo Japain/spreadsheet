@@ -140,7 +140,7 @@ Output PNGs are written to `docs/qa/actual/`. Both directories are gitignored â€
 
 ## Building
 
-To produce a Windows `.exe`, run PyInstaller **from the project root** on a Windows machine with Python installed:
+To produce a Windows `.exe`, run PyInstaller on a Windows machine with Python installed (the spec resolves all paths via `SPECPATH`, so CWD does not matter):
 
 ```bash
 pip install -r requirements.txt
@@ -151,7 +151,7 @@ The packaged app lands at `dist/quarterly/quarterly.exe`. The entire `dist/quart
 
 **Requirements:**
 - Python 3.11+ on the build machine
-- No admin privileges are required to run the packaged app
+- The packaged app should not require admin privileges to run (verify on a clean machine)
 - Test the `.exe` on a clean Windows machine without Python to verify all dependencies are bundled
 
 ## Implementation Status

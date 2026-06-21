@@ -24,7 +24,7 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['pytest', 'pytest_qt'],
+    excludes=['pytest', 'pytestqt'],
     noarchive=False,
     optimize=0,
 )
