@@ -3,9 +3,14 @@
 # Build mode: --onedir (produces dist/quarterly/quarterly.exe)
 # Note: UPX disabled — UPX can corrupt Qt binaries on Windows
 
+import os
+
+# Since quarterly.spec is in build/quarterly.spec, the project root is one level up
+PROJECT_ROOT = os.path.abspath(os.path.join(SPECPATH, '..'))
+
 a = Analysis(
-    ['src/main.py'],
-    pathex=['.'],
+    [os.path.join(PROJECT_ROOT, 'src', 'main.py')],
+    pathex=[PROJECT_ROOT],
     binaries=[],
     datas=[],
     hiddenimports=[

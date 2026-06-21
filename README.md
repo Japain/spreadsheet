@@ -144,7 +144,7 @@ To produce a Windows `.exe`, run PyInstaller **from the project root** on a Wind
 
 ```bash
 pip install -r requirements.txt
-pyinstaller build/quarterly.spec
+python -m PyInstaller build/quarterly.spec
 ```
 
 The packaged app lands at `dist/quarterly/quarterly.exe`. The entire `dist/quarterly/` folder must be distributed together (not just the `.exe`).
