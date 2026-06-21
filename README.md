@@ -143,6 +143,7 @@ Output PNGs are written to `docs/qa/actual/`. Both directories are gitignored â€
 To produce a Windows `.exe`, run PyInstaller on a Windows machine with Python installed (the spec resolves all paths via `SPECPATH`, so CWD does not matter):
 
 ```bash
+source venv/bin/activate
 pip install -r requirements.txt
 python -m PyInstaller build/quarterly.spec
 ```
