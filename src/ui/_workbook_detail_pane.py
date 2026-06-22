@@ -1,7 +1,10 @@
 from __future__ import annotations
 
-from PySide6.QtCore import Signal
+from pathlib import Path
+
+from PySide6.QtCore import QEvent, Qt, QStringListModel, Signal
 from PySide6.QtWidgets import (
+    QCompleter,
     QFileDialog,
     QFrame,
     QHBoxLayout,
@@ -43,11 +46,19 @@ class _WorkbookDetailPane(QWidget):
         self._filename_field.setObjectName("filename_field")
         layout.addWidget(self._filename_field)
 
+        self._completer = QCompleter(self)
+        self._completer.setCompletionMode(QCompleter.CompletionMode.PopupCompletion)
+        self._completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        self._completer_model = QStringListModel(self._completer)
+        self._completer.setModel(self._completer_model)
+        self._filename_field.setCompleter(self._completer)
+
         # Target folder
         layout.addWidget(QLabel("Target folder"))
         folder_row = QHBoxLayout()
         folder_row.setSpacing(6)
         self._folder_field = QLineEdit(workbook.folder)
+        self._folder_field.setObjectName("folder_field")
         browse_btn = QPushButton("Browse…")
         browse_btn.setFixedWidth(70)
         browse_btn.clicked.connect(self._browse_folder)
@@ -106,6 +117,9 @@ class _WorkbookDetailPane(QWidget):
         # Connect field signals after layout is fully built
         self._filename_field.textChanged.connect(self._on_filename_changed)
         self._folder_field.textChanged.connect(self._on_folder_changed)
+        self._folder_field.textChanged.connect(self._refresh_completer)
+        self._filename_field.installEventFilter(self)
+        self._refresh_completer(workbook.folder)
 
         self._refresh_mapping_controls()
 
@@ -129,6 +143,20 @@ class _WorkbookDetailPane(QWidget):
     def _on_folder_changed(self, value: str) -> None:
         self._workbook.folder = value
         self._save()
+
+    def _refresh_completer(self, folder: str) -> None:
+        path = Path(folder)
+        if folder and path.is_dir():
+            names = sorted(p.name for p in path.iterdir() if p.suffix.lower() == ".xlsx")
+        else:
+            names = []
+        self._completer_model.setStringList(names)
+
+    def eventFilter(self, obj, event) -> bool:
+        if obj is self._filename_field and event.type() == QEvent.Type.FocusIn:
+            self._refresh_completer(self._folder_field.text())
+            self._completer.complete()
+        return super().eventFilter(obj, event)
 
     def _browse_folder(self) -> None:
         path = QFileDialog.getExistingDirectory(self, "Select folder", self._workbook.folder)
