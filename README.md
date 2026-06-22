@@ -138,6 +138,23 @@ pytest tests/ui/test_visual_qa.py -s
 
 Output PNGs are written to `docs/qa/actual/`. Both directories are gitignored — references are local-only, not version-controlled. To establish a baseline, run the script once and copy the actuals to `docs/qa/reference/`. On subsequent runs, diff the new actuals against those local references to spot regressions.
 
+## Building
+
+To produce a Windows `.exe`, run PyInstaller on a Windows machine with Python installed (the spec resolves all paths via `SPECPATH`, so CWD does not matter):
+
+```bash
+source venv/bin/activate
+pip install -r requirements.txt
+python -m PyInstaller build/quarterly.spec
+```
+
+The packaged app lands at `dist/quarterly/quarterly.exe`. The entire `dist/quarterly/` folder must be distributed together (not just the `.exe`).
+
+**Requirements:**
+- Python 3.11+ on the build machine
+- The packaged app should not require admin privileges to run (verify on a clean machine)
+- Test the `.exe` on a clean Windows machine without Python to verify all dependencies are bundled
+
 ## Implementation Status
 
 | Phase | Description | Status |

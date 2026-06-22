@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import sys
-
 from PySide6.QtWidgets import (
     QApplication,
     QDialog,
@@ -111,7 +110,7 @@ class MainWindow(QMainWindow):
         config_lbl.setToolTip(str(DEFAULT_CONFIG_PATH))
         config_lbl.setStyleSheet("font-size:10px;")
 
-        version_lbl = QLabel("v1.0.0")  # TODO: read from package metadata (Phase 11)
+        version_lbl = QLabel("v1.0.0")
         version_lbl.setObjectName("secondary")
         version_lbl.setStyleSheet("font-size:10px;")
 
